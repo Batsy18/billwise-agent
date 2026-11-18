@@ -2,15 +2,25 @@
   "name": "@billwise/agent",
   "version": "0.1.0",
   "private": true,
-  "description": "CLI chat agent that lets an LLM choose MCP and billing API tools.",
+  "description": "CLI chat agent: an LLM (Gemini) chooses MCP documentation search and billing API tools.",
   "author": "Mustafa Batu Demir",
   "license": "MIT",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/cli.js",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/index.js",
+    "chat": "node dist/cli.js",
+    "chat:dev": "tsx src/cli.ts",
+    "demo": "tsx src/demo.ts",
     "test": "jest",
     "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@google/genai": "^3.6.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "dotenv": "^18.0.10",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15"
   }
 }
