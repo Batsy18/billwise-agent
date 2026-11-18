@@ -58,8 +58,9 @@ model UsageEvent {
 
   subscriber Subscriber @relation(fields: [subscriberNo], references: [subscriberNo])
 
-  // Calculate Bill aggregates and Query Bill Detailed pages by subscriber + period.
-  @@index([subscriberNo, year, month])
+  // Prefix (subscriber, year, month) serves Calculate Bill's sums; the trailing
+  // (created_at, id) lets Query Bill Detailed read a page in order without sorting.
+  @@index([subscriberNo, year, month, createdAt, id])
   @@map("usage_event")
 }
 

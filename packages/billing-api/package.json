@@ -17,19 +17,32 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "dev": "tsx watch src/index.ts",
+    "test:int": "node --experimental-vm-modules --no-warnings=ExperimentalWarning ../../node_modules/jest/bin/jest.js -c jest.int.config.js",
+    "keys:generate": "tsx src/scripts/generate-keys.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "bcrypt": "^6.0.0",
-    "pg": "^8.23.1"
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.1",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.2.1",
+    "@types/swagger-ui-express": "^4.1.8",
     "dotenv": "^18.0.10",
     "prisma": "^7.10.1",
+    "supertest": "^7.3.2",
     "tsx": "^4.23.15"
   }
 }

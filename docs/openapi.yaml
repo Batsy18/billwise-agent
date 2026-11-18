@@ -1,0 +1,626 @@
+openapi: 3.0.3
+info:
+  title: billwise Billing API
+  version: 1.0.0
+  description: |
+    Billing REST API for a fictitious mobile carrier (SE 4458 Midterm).
+    Pricing rules: Mobile Provider Billing Guide (MOB-BILLING-2026-01), sections 2–6.
+
+    **Money** is sent and returned in dollars as JSON numbers with at most 2 decimals
+    (`80`, `30.5`, `0.07`). JSON cannot carry trailing zeros, so `80.00` appears as `80`.
+    Amounts with more than 2 decimals are rejected with `400 VALIDATION_ERROR`.
+
+    **Auth**: `POST /api/v1/auth/login` returns an RS256 JWT. Send it as
+    `Authorization: Bearer <token>`. Behind GCP API Gateway the user token arrives as
+    `X-Forwarded-Authorization`, which the API reads first.
+
+    **Errors** always have the shape `{ "error": { "code", "message", "traceId" } }`.
+servers:
+  - url: /
+    description: This server (routes are versioned under /api/v1)
+tags:
+  - name: Auth
+  - name: Usage
+  - name: Bills
+  - name: Payments
+  - name: Health
+
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in and receive an access token
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+            example: { subscriberNo: '5551000002', password: user-demo-pass }
+      responses:
+        '200':
+          description: Access token (RS256 JWT, 1 hour)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginResponse' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401':
+          description: Wrong subscriber number or password (same message for both)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error:
+                  {
+                    code: UNAUTHORIZED,
+                    message: Invalid subscriber number or password,
+                    traceId: 5b0c2a7e-6c1d-4f5e-9a51-1f4f0f3c2d10,
+                  }
+
+  /.well-known/jwks.json:
+    get:
+      tags: [Auth]
+      summary: Public signing keys (JWKS) used to verify access tokens
+      description: Consumed by GCP API Gateway (`x-google-jwks_uri`).
+      operationId: getJwks
+      security: []
+      responses:
+        '200':
+          description: JSON Web Key Set
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Jwks' }
+
+  /api/v1/usage:
+    post:
+      tags: [Usage]
+      summary: Add Usage — record one usage event (ADMIN)
+      description: A PHONE event adds 10 minutes, an INTERNET event adds 1 MB (guide 2.3, 3.3). There is no amount parameter.
+      operationId: addUsage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UsageRequest' }
+            example: { subscriberNo: '5551000002', year: 2026, month: 11, usageType: PHONE }
+      responses:
+        '201':
+          description: Usage recorded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UsageResponse' }
+              example: { status: SUCCESS, recorded: { type: PHONE, amount: 10, unit: MIN } }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/SubscriberNotFound' }
+
+  /api/v1/bills/calculate:
+    post:
+      tags: [Bills]
+      summary: Calculate Bill — price the period's usage and store the bill (ADMIN)
+      description: |
+        Phone = $10 × ceil(max(0, minutes − 1000) / 1000).
+        Internet = $50 + $10 × ceil(max(0, GB − 20) / 10), 1 GB = 1000 MB.
+        Due date = 15 days after the end of the billing month.
+        Can be called again: the total is updated, `paidAmount` is kept and the status is re-derived.
+      operationId: calculateBill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Period' }
+            example: { subscriberNo: '5551000002', year: 2026, month: 11 }
+      responses:
+        '200':
+          description: Bill calculated and stored
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CalculateResponse' }
+              example:
+                status: SUCCESS
+                bill:
+                  {
+                    total: 80,
+                    phoneCharge: 10,
+                    internetCharge: 70,
+                    dueDate: '2026-11-15',
+                    paidAmount: 0,
+                    remainingBalance: 80,
+                    billStatus: UNPAID,
+                  }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/SubscriberNotFound' }
+
+  /api/v1/bills/{subscriberNo}:
+    get:
+      tags: [Bills]
+      summary: Query Bill — stored total and paid status (public)
+      operationId: queryBill
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/SubscriberNo'
+        - $ref: '#/components/parameters/Month'
+        - $ref: '#/components/parameters/Year'
+      responses:
+        '200':
+          description: Bill summary
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BillSummary' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '404': { $ref: '#/components/responses/BillNotFound' }
+
+  /api/v1/bills/{subscriberNo}/detailed:
+    get:
+      tags: [Bills]
+      summary: Query Bill Detailed — breakdown + paged usage events (own account or ADMIN)
+      description: Paging applies to the usage-event list, ordered by (createdAt, id). The breakdown is the same on every page.
+      operationId: queryBillDetailed
+      parameters:
+        - $ref: '#/components/parameters/SubscriberNo'
+        - $ref: '#/components/parameters/Month'
+        - $ref: '#/components/parameters/Year'
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: pageSize
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Detailed bill
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BillDetailed' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/BillNotFound' }
+
+  /api/v1/payments:
+    post:
+      tags: [Payments]
+      summary: Pay Bill — full or partial payment (own account or ADMIN)
+      description: |
+        Runs in one database transaction with the bill row locked.
+        `transactionId` is the idempotency key: reusing it returns 409. When the earlier payment
+        belongs to the same subscriber, the 409 includes `existingPayment` so a retry can be
+        reported as the success it already was.
+      operationId: payBill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PaymentRequest' }
+            example:
+              {
+                subscriberNo: '5551000002',
+                year: 2026,
+                month: 10,
+                amount: 30,
+                transactionId: 'agent-7f3c2a',
+              }
+      responses:
+        '200':
+          description: Payment recorded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentResponse' }
+              example:
+                {
+                  paymentStatus: SUCCESS,
+                  transactionId: 'agent-7f3c2a',
+                  amount: 30,
+                  paidAmount: 30,
+                  remainingBalance: 50,
+                  billStatus: PARTIALLY_PAID,
+                }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/BillNotFound' }
+        '409':
+          description: transactionId already used
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DuplicateTransactionError' }
+              examples:
+                sameSubscriber:
+                  summary: Retry of your own earlier payment
+                  value:
+                    error:
+                      code: DUPLICATE_TRANSACTION
+                      message: transactionId agent-7f3c2a has already been used
+                      traceId: 5b0c2a7e-6c1d-4f5e-9a51-1f4f0f3c2d10
+                      existingPayment:
+                        {
+                          amount: 30,
+                          paidAmount: 30,
+                          remainingBalance: 50,
+                          billStatus: PARTIALLY_PAID,
+                        }
+                otherSubscriber:
+                  summary: Someone else's transactionId (no details)
+                  value:
+                    error:
+                      {
+                        code: DUPLICATE_TRANSACTION,
+                        message: transactionId agent-7f3c2a has already been used,
+                        traceId: 5b0c2a7e-6c1d-4f5e-9a51-1f4f0f3c2d10,
+                      }
+        '422':
+          description: AMOUNT_EXCEEDS_BALANCE or BILL_ALREADY_PAID
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              examples:
+                exceeds:
+                  value:
+                    error:
+                      {
+                        code: AMOUNT_EXCEEDS_BALANCE,
+                        message: Amount exceeds the remaining balance of 50,
+                        traceId: 5b0c2a7e-6c1d-4f5e-9a51-1f4f0f3c2d10,
+                      }
+                paid:
+                  value:
+                    error:
+                      {
+                        code: BILL_ALREADY_PAID,
+                        message: This bill is already fully paid,
+                        traceId: 5b0c2a7e-6c1d-4f5e-9a51-1f4f0f3c2d10,
+                      }
+
+  /api/v1/health:
+    get:
+      tags: [Health]
+      summary: Liveness — the process is up (no database check)
+      operationId: health
+      security: []
+      responses:
+        '200':
+          description: Alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { status: { type: string, enum: [ok] } }
+
+  /api/v1/health/ready:
+    get:
+      tags: [Health]
+      summary: Readiness — the database answers
+      operationId: healthReady
+      security: []
+      responses:
+        '200':
+          description: Ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ready] }
+                  database: { type: string, enum: [up] }
+        '503':
+          description: Database unreachable
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error:
+                  {
+                    code: SERVICE_UNAVAILABLE,
+                    message: Database is not reachable,
+                    traceId: 5b0c2a7e-6c1d-4f5e-9a51-1f4f0f3c2d10,
+                  }
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT (RS256)
+
+  parameters:
+    SubscriberNo:
+      name: subscriberNo
+      in: path
+      required: true
+      schema: { type: string, maxLength: 32 }
+      example: '5551000002'
+    Month:
+      name: month
+      in: query
+      required: true
+      schema: { type: integer, minimum: 1, maximum: 12 }
+      example: 10
+    Year:
+      name: year
+      in: query
+      required: true
+      schema: { type: integer, minimum: 2000, maximum: 2100 }
+      example: 2026
+
+  responses:
+    ValidationError:
+      description: Invalid input (VALIDATION_ERROR)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error:
+              {
+                code: VALIDATION_ERROR,
+                message: 'month: Too big: expected number to be <=12',
+                traceId: 5b0c2a7e-6c1d-4f5e-9a51-1f4f0f3c2d10,
+              }
+    Unauthorized:
+      description: Missing, invalid or expired token (UNAUTHORIZED)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error:
+              {
+                code: UNAUTHORIZED,
+                message: Missing bearer token,
+                traceId: 5b0c2a7e-6c1d-4f5e-9a51-1f4f0f3c2d10,
+              }
+    Forbidden:
+      description: Wrong role or someone else's account (FORBIDDEN)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error:
+              {
+                code: FORBIDDEN,
+                message: You can only access your own account,
+                traceId: 5b0c2a7e-6c1d-4f5e-9a51-1f4f0f3c2d10,
+              }
+    BillNotFound:
+      description: The bill for this period has not been calculated (BILL_NOT_FOUND)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error:
+              {
+                code: BILL_NOT_FOUND,
+                message: 'No bill for 5551000002 2026-11; it has not been calculated yet',
+                traceId: 5b0c2a7e-6c1d-4f5e-9a51-1f4f0f3c2d10,
+              }
+    SubscriberNotFound:
+      description: Unknown or non-billable subscriber (SUBSCRIBER_NOT_FOUND)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error:
+              {
+                code: SUBSCRIBER_NOT_FOUND,
+                message: Subscriber 5559999999 not found,
+                traceId: 5b0c2a7e-6c1d-4f5e-9a51-1f4f0f3c2d10,
+              }
+
+  schemas:
+    Money:
+      type: number
+      description: US dollars, at most 2 decimals
+      example: 30.5
+    BillStatus:
+      type: string
+      enum: [UNPAID, PARTIALLY_PAID, PAID]
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, traceId]
+          properties:
+            code:
+              type: string
+              enum:
+                [
+                  VALIDATION_ERROR,
+                  UNAUTHORIZED,
+                  FORBIDDEN,
+                  BILL_NOT_FOUND,
+                  SUBSCRIBER_NOT_FOUND,
+                  NOT_FOUND,
+                  DUPLICATE_TRANSACTION,
+                  AMOUNT_EXCEEDS_BALANCE,
+                  BILL_ALREADY_PAID,
+                  INTERNAL_ERROR,
+                  SERVICE_UNAVAILABLE,
+                ]
+            message: { type: string }
+            traceId: { type: string }
+    DuplicateTransactionError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, traceId]
+          properties:
+            code: { type: string, enum: [DUPLICATE_TRANSACTION] }
+            message: { type: string }
+            traceId: { type: string }
+            existingPayment:
+              description: Only present when the earlier payment belongs to the same subscriber
+              type: object
+              properties:
+                amount: { $ref: '#/components/schemas/Money' }
+                paidAmount: { $ref: '#/components/schemas/Money' }
+                remainingBalance: { $ref: '#/components/schemas/Money' }
+                billStatus: { $ref: '#/components/schemas/BillStatus' }
+    LoginRequest:
+      type: object
+      required: [subscriberNo, password]
+      properties:
+        subscriberNo: { type: string, maxLength: 32 }
+        password: { type: string, format: password }
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          {
+            type: string,
+            description: 'RS256 JWT with iss, aud, sub (subscriberNo), role, iat, exp',
+          }
+        tokenType: { type: string, enum: [Bearer] }
+        expiresIn: { type: integer, example: 3600 }
+    Jwks:
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            type: object
+            properties:
+              kty: { type: string, enum: [RSA] }
+              n: { type: string }
+              e: { type: string }
+              kid: { type: string }
+              alg: { type: string, enum: [RS256] }
+              use: { type: string, enum: [sig] }
+    Period:
+      type: object
+      required: [subscriberNo, year, month]
+      properties:
+        subscriberNo: { type: string, maxLength: 32 }
+        year: { type: integer, minimum: 2000, maximum: 2100 }
+        month: { type: integer, minimum: 1, maximum: 12 }
+    UsageRequest:
+      allOf:
+        - $ref: '#/components/schemas/Period'
+        - type: object
+          required: [usageType]
+          properties:
+            usageType: { type: string, enum: [PHONE, INTERNET] }
+    UsageResponse:
+      type: object
+      properties:
+        status: { type: string, enum: [SUCCESS] }
+        recorded:
+          type: object
+          properties:
+            type: { type: string, enum: [PHONE, INTERNET] }
+            amount: { type: integer, enum: [10, 1] }
+            unit: { type: string, enum: [MIN, MB] }
+    CalculateResponse:
+      type: object
+      properties:
+        status: { type: string, enum: [SUCCESS] }
+        bill:
+          type: object
+          properties:
+            total: { $ref: '#/components/schemas/Money' }
+            phoneCharge: { $ref: '#/components/schemas/Money' }
+            internetCharge: { $ref: '#/components/schemas/Money' }
+            dueDate: { type: string, format: date }
+            paidAmount: { $ref: '#/components/schemas/Money' }
+            remainingBalance: { $ref: '#/components/schemas/Money' }
+            billStatus: { $ref: '#/components/schemas/BillStatus' }
+    BillSummary:
+      type: object
+      properties:
+        subscriberNo: { type: string }
+        month: { type: integer }
+        year: { type: integer }
+        total: { $ref: '#/components/schemas/Money' }
+        paidAmount: { $ref: '#/components/schemas/Money' }
+        remainingBalance: { $ref: '#/components/schemas/Money' }
+        status: { $ref: '#/components/schemas/BillStatus' }
+        dueDate: { type: string, format: date }
+      example:
+        {
+          subscriberNo: '5551000002',
+          month: 10,
+          year: 2026,
+          total: 80,
+          paidAmount: 0,
+          remainingBalance: 80,
+          status: UNPAID,
+          dueDate: '2026-11-15',
+        }
+    BillDetailed:
+      allOf:
+        - $ref: '#/components/schemas/BillSummary'
+        - type: object
+          properties:
+            usage:
+              type: object
+              properties:
+                phoneMinutes: { type: integer, example: 1350 }
+                internetMB: { type: integer, example: 35000 }
+                internetGB: { type: number, example: 35 }
+            charges:
+              type: object
+              properties:
+                phone:
+                  type: object
+                  properties:
+                    includedMinutes: { type: integer, example: 1000 }
+                    extraBlocks: { type: integer, example: 1 }
+                    amount: { $ref: '#/components/schemas/Money' }
+                internet:
+                  type: object
+                  properties:
+                    base: { $ref: '#/components/schemas/Money' }
+                    extraBlocks: { type: integer, example: 2 }
+                    amount: { $ref: '#/components/schemas/Money' }
+            usageEvents:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id: { type: string, format: uuid }
+                      usageType: { type: string, enum: [PHONE, INTERNET] }
+                      amount: { type: integer }
+                      unit: { type: string, enum: [MIN, MB] }
+                      createdAt: { type: string, format: date-time }
+                page: { type: integer }
+                pageSize: { type: integer }
+                totalItems: { type: integer }
+                totalPages: { type: integer }
+            calculatedAt: { type: string, format: date-time }
+    PaymentRequest:
+      allOf:
+        - $ref: '#/components/schemas/Period'
+        - type: object
+          required: [amount, transactionId]
+          properties:
+            amount:
+              type: number
+              minimum: 0
+              exclusiveMinimum: true
+              maximum: 1000000
+              description: Dollars, at most 2 decimals, not above the remaining balance
+            transactionId:
+              type: string
+              maxLength: 64
+              pattern: '^[A-Za-z0-9._:-]+$'
+              description: Idempotency key, globally unique
+    PaymentResponse:
+      type: object
+      properties:
+        paymentStatus: { type: string, enum: [SUCCESS] }
+        transactionId: { type: string }
+        amount: { $ref: '#/components/schemas/Money' }
+        paidAmount: { $ref: '#/components/schemas/Money' }
+        remainingBalance: { $ref: '#/components/schemas/Money' }
+        billStatus: { $ref: '#/components/schemas/BillStatus' }

@@ -24,6 +24,15 @@ export default tseslint.config(
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
     },
   },
+  // supertest types `res.body` as `any`; asserting on it is the point of a test.
+  // Application code keeps the full no-unsafe-* rules.
+  {
+    files: ['packages/*/src/**/*.test.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+    },
+  },
   // CommonJS config files (jest.config.js etc.).
   {
     files: ['**/*.js'],

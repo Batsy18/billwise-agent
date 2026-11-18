@@ -1,4 +1,46 @@
-import { centsToDecimalString, decimalStringToCents } from './money';
+import {
+  centsToDecimalString,
+  centsToDollars,
+  decimalStringToCents,
+  dollarsToCents,
+  hasAtMostTwoDecimals,
+} from './money';
+
+describe('dollarsToCents — API input (JSON number in dollars) → integer cents', () => {
+  it.each([
+    [80, 8000],
+    [30.5, 3050],
+    [0.1, 10], //   0.1 * 100 = 10.000000000000002 in floating point → rounds to 10
+    [0.07, 7], //   0.07 * 100 = 7.000000000000001
+    [19.99, 1999],
+    [1_000_000, 100_000_000],
+  ])('%p → %i', (dollars, cents) => {
+    expect(dollarsToCents(dollars)).toBe(cents);
+  });
+
+  it.each([30.555, 1.005, 0.001, Number.NaN, Number.POSITIVE_INFINITY, -1])(
+    'rejects %p (more than 2 decimals, not finite or negative)',
+    (v) => {
+      expect(hasAtMostTwoDecimals(v)).toBe(false);
+      expect(() => dollarsToCents(v)).toThrow(RangeError);
+    },
+  );
+});
+
+describe('centsToDollars — integer cents → JSON number in dollars', () => {
+  it.each([
+    [8000, 80],
+    [3050, 30.5],
+    [7, 0.07],
+    [0, 0],
+  ])('%i → %p', (cents, dollars) => {
+    expect(centsToDollars(cents)).toBe(dollars);
+  });
+
+  it('round-trips every cent value without drift', () => {
+    for (let c = 0; c <= 100_000; c += 1) expect(dollarsToCents(centsToDollars(c))).toBe(c);
+  });
+});
 
 describe('centsToDecimalString — integer cents → decimal(10,2) string, no floats', () => {
   it.each([

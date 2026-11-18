@@ -15,6 +15,7 @@
     "build": "npm run build --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "test": "jest",
+    "test:int": "npm run test:int -w @billwise/billing-api",
     "test:coverage": "jest --coverage",
     "lint": "eslint .",
     "format": "prettier --write .",
