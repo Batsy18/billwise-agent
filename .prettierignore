@@ -5,3 +5,5 @@ package-lock.json
 .claude/
 .remember/
 CLAUDE.md
+packages/billing-api/src/generated/
+packages/billing-api/prisma/migrations/

@@ -1,0 +1,101 @@
+// ER model: vault note "Midterm - API ve Veri Modeli".
+// Models are PascalCase in code, tables/columns snake_case in the database.
+// CHECK constraints (month range, positive amounts, non-negative money) live in the init
+// migration SQL because Prisma's schema language cannot express them (ADR #17).
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUBSCRIBER
+  ADMIN
+
+  @@map("subscriber_role")
+}
+
+enum UsageType {
+  PHONE // one event = 10 minutes
+  INTERNET // one event = 1 MB
+
+  @@map("usage_type")
+}
+
+enum BillStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+
+  @@map("bill_status")
+}
+
+model Subscriber {
+  subscriberNo String @id @map("subscriber_no")
+  fullName     String @map("full_name")
+  passwordHash String @map("password_hash")
+  role         Role   @default(SUBSCRIBER)
+
+  usageEvents UsageEvent[]
+  bills       Bill[]
+
+  @@map("subscriber")
+}
+
+model UsageEvent {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscriberNo String    @map("subscriber_no")
+  year         Int
+  month        Int
+  usageType    UsageType @map("usage_type")
+  amount       Int // 10 (minutes) or 1 (MB)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  subscriber Subscriber @relation(fields: [subscriberNo], references: [subscriberNo])
+
+  // Calculate Bill aggregates and Query Bill Detailed pages by subscriber + period.
+  @@index([subscriberNo, year, month])
+  @@map("usage_event")
+}
+
+model Bill {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscriberNo   String     @map("subscriber_no")
+  year           Int
+  month          Int
+  phoneMinutes   Int        @map("phone_minutes")
+  internetMb     Int        @map("internet_mb")
+  phoneCharge    Decimal    @map("phone_charge") @db.Decimal(10, 2)
+  internetCharge Decimal    @map("internet_charge") @db.Decimal(10, 2)
+  total          Decimal    @db.Decimal(10, 2)
+  paidAmount     Decimal    @default(0) @map("paid_amount") @db.Decimal(10, 2)
+  status         BillStatus @default(UNPAID)
+  dueDate        DateTime   @map("due_date") @db.Date
+  calculatedAt   DateTime   @default(now()) @map("calculated_at") @db.Timestamptz(3)
+
+  subscriber Subscriber @relation(fields: [subscriberNo], references: [subscriberNo])
+  payments   Payment[]
+
+  // One bill per subscriber per billing period; recalculation updates this row.
+  @@unique([subscriberNo, year, month])
+  @@map("bill")
+}
+
+model Payment {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  billId        String   @map("bill_id") @db.Uuid
+  transactionId String   @unique @map("transaction_id") // idempotency key → 409 on duplicate
+  amount        Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  bill Bill @relation(fields: [billId], references: [id])
+
+  // Postgres does not index foreign keys automatically.
+  @@index([billId])
+  @@map("payment")
+}

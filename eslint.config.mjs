@@ -6,7 +6,14 @@ import globals from 'globals';
 
 export default tseslint.config(
   {
-    ignores: ['**/dist/**', '**/coverage/**', '**/node_modules/**', '.claude/**', '.remember/**'],
+    ignores: [
+      '**/dist/**',
+      '**/coverage/**',
+      '**/node_modules/**',
+      '**/src/generated/**', // Prisma client
+      '.claude/**',
+      '.remember/**',
+    ],
   },
   js.configs.recommended,
   // Type-aware rules for TypeScript sources (each package's tsconfig.json covers src/).
