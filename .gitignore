@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+build/
+*.tsbuildinfo
+coverage/
+
+# env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# agent traces (keep curated examples under docs/)
+packages/agent/traces/
+
+# local AI assistant config (kept on this machine only)
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+.remember/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
