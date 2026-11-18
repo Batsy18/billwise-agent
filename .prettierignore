@@ -10,3 +10,6 @@ packages/billing-api/prisma/migrations/
 packages/mcp-server/generated/
 # instructor document: keep byte-for-byte
 packages/mcp-server/data/
+
+# raw API Gateway response kept byte-for-byte (README evidence)
+infra/gateway-401-example.json

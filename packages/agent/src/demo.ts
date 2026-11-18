@@ -68,9 +68,9 @@ export function isLocalUrl(url: string): boolean {
   return ['localhost', '127.0.0.1', '::1', '[::1]'].includes(new URL(url).hostname);
 }
 
-async function healthy(url: string): Promise<boolean> {
+async function healthy(url: string, timeoutMs = 2_000): Promise<boolean> {
   try {
-    return (await fetch(url, { signal: AbortSignal.timeout(2_000) })).ok;
+    return (await fetch(url, { signal: AbortSignal.timeout(timeoutMs) })).ok;
   } catch {
     return false;
   }
@@ -84,7 +84,13 @@ async function ensureService(
 ): Promise<void> {
   if (await healthy(healthUrl)) return void console.log(`✓ ${name} is running (${healthUrl})`);
   if (!isLocalUrl(healthUrl)) {
-    // Cloud URL: never start a local copy in its place.
+    // Cloud URL: never start a local copy in its place. Cloud Run scales to zero, so give a
+    // cold start (~8 s measured) time: 3 tries with a 15 s timeout each.
+    console.log(`… waiting for ${name} (cold start?)`);
+    for (let i = 0; i < 3; i += 1) {
+      if (await healthy(healthUrl, 15_000))
+        return void console.log(`✓ ${name} is up (${healthUrl})`);
+    }
     throw new Error(`${name} is not reachable at ${healthUrl} (is the cloud deployment up?)`);
   }
   if (!existsSync(entry))

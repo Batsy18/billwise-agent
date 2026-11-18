@@ -12,6 +12,7 @@
 # never rotated by a re-run; Cloud Run deploys and gateway configs create new revisions.
 # Secret VALUES are generated here and piped straight into Secret Manager — never printed.
 set -euo pipefail
+shopt -s inherit_errexit  # a failing command inside $(…) must stop the script too (bash ≥ 4.4)
 
 # ---------------- settings (override via env) ----------------
 PROJECT_ID="${PROJECT_ID:-project-b81d9425-6ed1-4fb6-a4e}"
