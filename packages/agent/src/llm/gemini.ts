@@ -21,7 +21,7 @@ import type {
   ThinkingLevel,
 } from '@google/genai' with { 'resolution-mode': 'import' };
 import type * as GenAI from '@google/genai' with { 'resolution-mode': 'import' };
-import { sleep, withRetry, type RetryOptions } from './retry';
+import { LlmTimeoutError, sleep, withRetry, type RetryOptions } from './retry';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const genai = require('@google/genai') as typeof GenAI;
@@ -142,10 +142,39 @@ export interface GeminiOptions {
   thinking: string | number;
   /** Minimum gap between requests (free tier: 15 RPM for 3.5 Flash-Lite → 4.1 s). */
   minIntervalMs?: number;
+  /** Per-request timeout (GEMINI_TIMEOUT_MS). On expiry the request is aborted and retried once. */
+  timeoutMs?: number;
   retry?: RetryOptions;
   api?: GenerateContentApi;
   now?: () => number;
   sleep?: (ms: number) => Promise<void>;
+}
+
+export const DEFAULT_TIMEOUT_MS = 20_000;
+
+/**
+ * Runs one request with an AbortSignal and a timer. The race guarantees the timeout even if
+ * the API ignored the signal; the abort cancels the underlying HTTP request.
+ */
+async function withTimeout<T>(
+  timeoutMs: number,
+  run: (signal: AbortSignal) => Promise<T>,
+): Promise<T> {
+  const controller = new AbortController();
+  let timer: NodeJS.Timeout | undefined;
+  const expired = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(new LlmTimeoutError(timeoutMs));
+    }, timeoutMs);
+  });
+  const request = run(controller.signal);
+  request.catch(() => undefined); // the loser of the race must not become an unhandled rejection
+  try {
+    return await Promise.race([request, expired]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export class GeminiProvider implements LlmProvider {
@@ -168,7 +197,9 @@ export class GeminiProvider implements LlmProvider {
         timing.attempts += 1;
         const t0 = now();
         try {
-          return await this.api.generateContent(params);
+          return await withTimeout(this.opts.timeoutMs ?? DEFAULT_TIMEOUT_MS, (abortSignal) =>
+            this.api.generateContent({ ...params, config: { ...params.config, abortSignal } }),
+          );
         } finally {
           timing.apiMs += now() - t0;
         }

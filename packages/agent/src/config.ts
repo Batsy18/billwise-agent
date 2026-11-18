@@ -30,6 +30,8 @@ const schema = z
     GEMINI_THINKING_BUDGET: thinking.default('MINIMAL'),
     // Demo only (see setup.createLlm). Free tier of gemini-3.5-flash-lite: 15 RPM → 4.1 s.
     LLM_MIN_INTERVAL_MS: z.coerce.number().int().min(0).default(4_100),
+    // Per Gemini request; on expiry the request is aborted and retried once (like a 503).
+    GEMINI_TIMEOUT_MS: z.coerce.number().int().min(1_000).default(20_000),
   })
   .superRefine((c, ctx) => {
     if (c.LLM_PROVIDER === 'gemini' && !c.GEMINI_API_KEY) {

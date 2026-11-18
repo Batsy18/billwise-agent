@@ -27,11 +27,12 @@ export function createLlm(
     model: config.GEMINI_MODEL,
     thinking: config.GEMINI_THINKING_BUDGET,
     minIntervalMs: opts.paced ? config.LLM_MIN_INTERVAL_MS : 0,
+    timeoutMs: config.GEMINI_TIMEOUT_MS,
     retry: {
       quotaHint: QUOTA_HINT,
       onRetry: ({ attempt, delayMs, status }) =>
         log(
-          `  … Gemini returned HTTP ${status}; retrying in ${Math.round(delayMs / 1000)} s (attempt ${attempt})`,
+          `  … Gemini ${status === 'timeout' ? 'timed out' : `returned HTTP ${status}`}; retrying in ${Math.round(delayMs / 1000)} s (attempt ${attempt})`,
         ),
     },
   });

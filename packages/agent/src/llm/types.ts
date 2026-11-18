@@ -48,7 +48,7 @@ export interface LlmTiming {
   /** Waiting to respect LLM_MIN_INTERVAL_MS (demo only). */
   pacingMs: number;
   /** Backoff waits, each with the HTTP status that caused it. */
-  retries: { status: number; delayMs: number }[];
+  retries: { status: number | 'timeout'; delayMs: number }[];
   /** Time spent inside the provider API calls (all attempts, incl. failed ones). */
   apiMs: number;
   attempts: number;

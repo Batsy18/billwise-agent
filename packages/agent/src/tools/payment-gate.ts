@@ -90,8 +90,7 @@ export async function payWithConfirmation(
   onEvent: (e: GateEvent) => void = () => undefined,
 ): Promise<ToolOutcome> {
   const started = Date.now();
-  const emit = (e: GateEventInput) =>
-    onEvent({ ...e, elapsedMs: Date.now() - started });
+  const emit = (e: GateEventInput) => onEvent({ ...e, elapsedMs: Date.now() - started });
   const reject = (outcome: ToolOutcome): ToolOutcome => {
     emit({ event: 'precheck_rejected', outcome: outcome.status });
     return outcome;

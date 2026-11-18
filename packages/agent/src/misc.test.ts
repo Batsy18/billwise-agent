@@ -136,6 +136,7 @@ describe('config', () => {
       GEMINI_MODEL: 'gemini-3.5-flash-lite',
       GEMINI_THINKING_BUDGET: 'MINIMAL',
       LLM_MIN_INTERVAL_MS: 4100,
+      GEMINI_TIMEOUT_MS: 20000,
     });
   });
 

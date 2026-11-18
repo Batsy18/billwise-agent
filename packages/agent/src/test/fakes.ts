@@ -3,7 +3,7 @@ import { Agent } from '../agent';
 import { BillingClient, type FetchFn, type Session } from '../clients/billing';
 import type { DocsClient } from '../clients/docs';
 import { MockProvider, type ScriptedTurn } from '../llm/mock';
-import type { ToolDeclaration } from '../llm/types';
+import type { LlmProvider, ToolDeclaration } from '../llm/types';
 import { buildSystemPrompt } from '../prompt';
 import { ToolExecutor } from '../tools/executor';
 import type { PaymentSummary } from '../tools/payment-gate';
@@ -146,6 +146,8 @@ export interface Harness {
 
 export function harness(opts: {
   script: ScriptedTurn[];
+  /** Use a different provider (e.g. GeminiProvider over a fake API) instead of the script. */
+  provider?: LlmProvider;
   api?: FakeBillingApi;
   docs?: FakeDocs;
   confirmAnswer?: string;
@@ -172,7 +174,7 @@ export function harness(opts: {
     sleep: () => Promise.resolve(),
   });
   const agent = new Agent({
-    llm,
+    llm: opts.provider ?? llm,
     executor,
     trace,
     systemPrompt: () =>
