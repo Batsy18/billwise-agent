@@ -38,8 +38,12 @@ describe('OpenAPI spec (docs/openapi.yaml)', () => {
 });
 
 describe('Swagger UI', () => {
-  it('GET /api/v1/docs/ serves the UI', async () => {
-    const res = await request(app).get('/api/v1/docs/');
+  it('GET /api/v1/docs/index.html serves the UI; /docs and /docs/ redirect there', async () => {
+    for (const p of ['/api/v1/docs', '/api/v1/docs/']) {
+      const r = await request(app).get(p);
+      expect([r.status, r.headers.location]).toEqual([301, '/api/v1/docs/index.html']);
+    }
+    const res = await request(app).get('/api/v1/docs/index.html');
     expect(res.status).toBe(200);
     expect(res.text).toContain('swagger-ui');
   });

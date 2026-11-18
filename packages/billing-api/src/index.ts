@@ -9,6 +9,7 @@ import { createApp } from './app';
 import { loadKeyMaterial } from './auth/keys';
 import { loadConfig } from './config';
 import { createPrismaClient } from './db/client';
+import { jsonErrorLog, requestLog } from './http/request-log';
 import { createPrismaRepositories } from './repositories/prisma';
 import { loadOpenApi } from './routes/docs.routes';
 
@@ -29,6 +30,12 @@ function main(): void {
       await prisma.$queryRaw`SELECT 1`;
     },
     openapi: loadOpenApi(),
+    ...(config.LOG_FORMAT === 'json'
+      ? {
+          requestLogger: requestLog({ projectId: config.GOOGLE_CLOUD_PROJECT }),
+          log: jsonErrorLog(),
+        }
+      : {}),
   });
 
   const server = app.listen(config.PORT, () => {

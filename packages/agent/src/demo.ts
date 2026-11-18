@@ -83,6 +83,10 @@ async function ensureService(
   children: ChildProcess[],
 ): Promise<void> {
   if (await healthy(healthUrl)) return void console.log(`✓ ${name} is running (${healthUrl})`);
+  if (!isLocalUrl(healthUrl)) {
+    // Cloud URL: never start a local copy in its place.
+    throw new Error(`${name} is not reachable at ${healthUrl} (is the cloud deployment up?)`);
+  }
   if (!existsSync(entry))
     throw new Error(
       `${name} is not running and ${entry} is missing — run \`npm run build\` first.`,
@@ -127,7 +131,8 @@ function summarize(steps: TraceStep[]) {
 const cell = (s: string) => s.replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
 
 async function main(): Promise<void> {
-  loadEnvFile();
+  const envOverlay = loadEnvFile();
+  if (envOverlay) console.log(`env: ${envOverlay} + .env`);
   const { only, reseed } = parseArgs(process.argv.slice(2));
   if (!process.env.GEMINI_API_KEY) {
     console.log(
@@ -156,10 +161,19 @@ async function main(): Promise<void> {
 
     if (isLocalUrl(config.BILLING_API_URL) || reseed) {
       console.log('… re-seeding the database (reproducible demo state)');
-      execFileSync(process.execPath, [path.join(ROOT, 'packages/billing-api/dist/db/seed.js')], {
-        cwd: ROOT,
-        stdio: 'inherit',
-      });
+      try {
+        execFileSync(process.execPath, [path.join(ROOT, 'packages/billing-api/dist/db/seed.js')], {
+          cwd: ROOT,
+          stdio: 'inherit',
+        });
+      } catch (err) {
+        if (isLocalUrl(config.BILLING_API_URL)) throw err;
+        // Cloud: DATABASE_URL in .env.cloud points at a local Cloud SQL Auth Proxy.
+        throw new Error(
+          'Re-seeding Cloud SQL failed — is the Cloud SQL Auth Proxy running? (infra/README.md)',
+          { cause: err },
+        );
+      }
     } else {
       console.log(
         `! ${config.BILLING_API_URL} is not local: NOT re-seeding (pass --reseed to force).`,

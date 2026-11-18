@@ -2,7 +2,7 @@
  * Express app factory. No I/O here: the caller injects repositories, keys and settings, so
  * the unit tests build it with in-memory fakes and src/index.ts with Prisma.
  */
-import express, { type Express } from 'express';
+import express, { type Express, type RequestHandler } from 'express';
 import type { KeyMaterial } from './auth/keys';
 import { requireAuth } from './auth/middleware';
 import type { JwtSettings } from './auth/tokens';
@@ -27,6 +27,8 @@ export interface AppDeps {
   /** Parsed docs/openapi.yaml; Swagger UI is mounted when provided. */
   openapi?: Record<string, unknown>;
   log?: (msg: string, err: unknown) => void;
+  /** Per-request access log middleware (JSON for Cloud Logging); none when omitted. */
+  requestLogger?: RequestHandler;
 }
 
 export function createApp(deps: AppDeps): Express {
@@ -34,6 +36,7 @@ export function createApp(deps: AppDeps): Express {
   app.disable('x-powered-by');
   app.set('trust proxy', true); // behind GCP API Gateway / Cloud Run front end
   app.use(traceId);
+  if (deps.requestLogger) app.use(deps.requestLogger);
   app.use(express.json({ limit: '16kb' }));
 
   const authenticate = requireAuth(deps.keys, deps.jwt);

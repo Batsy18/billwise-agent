@@ -9,6 +9,10 @@ const envSchema = z.object({
   JWT_ISSUER: z.string().min(1).default('billwise-billing-api'),
   JWT_AUDIENCE: z.string().min(1).default('billwise-api'),
   JWT_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
+  /** json = one structured log line per request (Cloud Logging); text = startup lines only. */
+  LOG_FORMAT: z.enum(['text', 'json']).default('text'),
+  /** Set on Cloud Run by deploy.sh; links request logs to Cloud Trace. */
+  GOOGLE_CLOUD_PROJECT: z.string().min(1).optional(),
 });
 
 export type Config = z.output<typeof envSchema>;

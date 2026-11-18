@@ -11,6 +11,7 @@ coverage/
 .env
 .env.*
 !.env.example
+!.env.cloud.example
 *.pem
 *.key
 
@@ -35,3 +36,7 @@ packages/billing-api/src/generated/
 
 # MCP search index (rebuilt by `npm run build-index`, also part of `npm run build`)
 packages/mcp-server/generated/
+
+# infra/deploy.sh by-products (rendered gateway configs contain only URLs; proxy log)
+infra/gateway/.rendered-*.yaml
+infra/.proxy.log

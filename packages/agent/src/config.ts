@@ -1,8 +1,11 @@
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { config as loadEnv } from 'dotenv';
 import { z } from 'zod';
 
-export const ROOT_ENV = path.resolve(__dirname, '../../../.env');
+export const ROOT = path.resolve(__dirname, '../../..');
+export const ROOT_ENV = path.join(ROOT, '.env');
+export const CLOUD_ENV = path.join(ROOT, '.env.cloud');
 
 /** "MINIMAL" | "LOW" | "MEDIUM" | "HIGH" (thinkingLevel, Gemini 3.x) or an integer (thinkingBudget, 2.x). */
 const thinking = z
@@ -55,8 +58,36 @@ export function loadAgentConfig(env: Record<string, string | undefined>): AgentC
   return r.data;
 }
 
-export function loadEnvFile(): void {
-  loadEnv({ path: ROOT_ENV, quiet: true });
+/**
+ * Which env files to load, most specific first. `--cloud` (or ENV_FILE=<path>, relative to the
+ * repo root) puts an overlay such as .env.cloud in front of .env: dotenv never overrides a value
+ * that is already set, so the overlay wins and .env still supplies the rest (GEMINI_API_KEY …).
+ */
+export function envFiles(
+  argv: readonly string[],
+  env: Record<string, string | undefined>,
+): { files: string[]; overlay?: string } {
+  const overlay = argv.includes('--cloud')
+    ? CLOUD_ENV
+    : env.ENV_FILE
+      ? path.resolve(ROOT, env.ENV_FILE)
+      : undefined;
+  return overlay ? { files: [overlay, ROOT_ENV], overlay } : { files: [ROOT_ENV] };
+}
+
+/** Loads the env files; returns the overlay's name (e.g. ".env.cloud") when one was used. */
+export function loadEnvFile(
+  argv: readonly string[] = process.argv.slice(2),
+  env: Record<string, string | undefined> = process.env,
+): string | undefined {
+  const { files, overlay } = envFiles(argv, env);
+  if (overlay && !existsSync(overlay)) {
+    throw new Error(
+      `${path.relative(ROOT, overlay)} not found — copy .env.cloud.example and fill it in (see infra/README.md).`,
+    );
+  }
+  for (const file of files) loadEnv({ path: file, quiet: true });
+  return overlay && path.relative(ROOT, overlay);
 }
 
 export const QUOTA_HINT =

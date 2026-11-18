@@ -1,7 +1,7 @@
 /** Shared unit-test wiring: in-memory repositories, a throwaway RSA key and handy tokens. */
 import { generateKeyPairSync } from 'node:crypto';
 import bcrypt from 'bcrypt';
-import type { Express } from 'express';
+import type { Express, RequestHandler } from 'express';
 import { createApp } from '../app';
 import { loadKeyMaterial } from '../auth/keys';
 import { signAccessToken, type JwtSettings } from '../auth/tokens';
@@ -40,6 +40,7 @@ export interface TestAppOptions {
   checkDatabase?: () => Promise<void>;
   /** Clock for created_at / calculated_at; defaults to a ticking clock (+1 ms per call). */
   now?: () => Date;
+  requestLogger?: RequestHandler;
 }
 
 export function tickingClock(start = Date.UTC(2026, 9, 1)): () => Date {
@@ -64,6 +65,7 @@ export function buildTestApp(opts: TestAppOptions = {}): TestApp {
     checkDatabase: opts.checkDatabase ?? (() => Promise.resolve()),
     openapi: loadOpenApi(),
     log: () => undefined,
+    ...(opts.requestLogger ? { requestLogger: opts.requestLogger } : {}),
   });
   return { app, repos };
 }

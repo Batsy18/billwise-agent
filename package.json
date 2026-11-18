@@ -23,7 +23,9 @@
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "chat": "npm run build && npm run chat -w @billwise/agent",
-    "demo": "npm run build && npm run demo -w @billwise/agent"
+    "demo": "npm run build && npm run demo -w @billwise/agent",
+    "chat:cloud": "npm run build && npm run chat -w @billwise/agent -- --cloud",
+    "demo:cloud": "npm run build && npm run demo -w @billwise/agent -- --cloud"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

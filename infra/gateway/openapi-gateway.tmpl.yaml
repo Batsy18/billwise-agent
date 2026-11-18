@@ -1,0 +1,124 @@
+# GCP API Gateway config (OpenAPI 2.0 — the format API Gateway requires).
+# NOT the API documentation: that is docs/openapi.yaml (OpenAPI 3, served as Swagger UI).
+#
+# infra/deploy.sh renders this template (__PLACEHOLDERS__ replaced) into
+# infra/gateway/.rendered-*.yaml and uploads it as an immutable api-config.
+#   __BACKEND_URL__   billing-api Cloud Run URL (requires authentication)
+#   __GATEWAY_HOST__  the gateway's own hostname (JWKS is fetched THROUGH the gateway)
+#   __JWT_ISSUER__ / __JWT_AUDIENCE__  must match the billing-api JWT settings
+#
+# The gateway calls Cloud Run with its service account's ID token (aud = jwt_audience) in
+# `Authorization` and forwards the user's token as `X-Forwarded-Authorization`.
+# Role checks (ADMIN for usage/calculate, self-or-admin for detailed/payments) stay in the API.
+swagger: '2.0'
+info:
+  title: billwise-api
+  description: Public entry point for the billwise Billing REST API (all REST traffic).
+  version: 1.0.0
+schemes:
+  - https
+produces:
+  - application/json
+
+x-google-backend:
+  address: __BACKEND_URL__
+  path_translation: APPEND_PATH_TO_ADDRESS
+  jwt_audience: __BACKEND_URL__
+  deadline: 30.0
+
+securityDefinitions:
+  billwise_jwt:
+    authorizationUrl: ''
+    flow: implicit
+    type: oauth2
+    x-google-issuer: __JWT_ISSUER__
+    x-google-jwks_uri: https://__GATEWAY_HOST__/.well-known/jwks.json
+    x-google-audiences: __JWT_AUDIENCE__
+
+paths:
+  # ---------- public ----------
+  /api/v1/auth/login:
+    post:
+      operationId: login
+      summary: Log in, returns an RS256 access token
+      responses:
+        '200': { description: OK }
+  /api/v1/bills/{subscriberNo}:
+    get:
+      operationId: queryBill
+      summary: Query bill (public by spec)
+      parameters:
+        - { name: subscriberNo, in: path, required: true, type: string }
+        - { name: month, in: query, required: true, type: integer }
+        - { name: year, in: query, required: true, type: integer }
+      responses:
+        '200': { description: OK }
+  /api/v1/health:
+    get:
+      operationId: health
+      responses:
+        '200': { description: OK }
+  /api/v1/health/ready:
+    get:
+      operationId: healthReady
+      responses:
+        '200': { description: OK }
+  /.well-known/jwks.json:
+    get:
+      operationId: jwks
+      summary: Public key set used by this gateway to validate JWTs
+      responses:
+        '200': { description: OK }
+  # Swagger UI: /docs redirects to /docs/index.html; the page and its assets are ONE path segment
+  # each → /api/v1/docs/{asset}. (API Gateway rejects a trailing-slash template like /docs/.)
+  /api/v1/docs:
+    get:
+      operationId: docsRedirect
+      responses:
+        '301': { description: Redirect to /api/v1/docs/index.html }
+  /api/v1/docs/{asset}:
+    get:
+      operationId: docsAsset
+      parameters:
+        - { name: asset, in: path, required: true, type: string }
+      responses:
+        '200': { description: Swagger UI page (index.html) or asset }
+  /api/v1/openapi.json:
+    get:
+      operationId: openapiJson
+      responses:
+        '200': { description: OpenAPI 3 document }
+
+  # ---------- JWT required (validated here, then again in the API) ----------
+  /api/v1/bills/{subscriberNo}/detailed:
+    get:
+      operationId: queryBillDetailed
+      security:
+        - billwise_jwt: []
+      parameters:
+        - { name: subscriberNo, in: path, required: true, type: string }
+        - { name: month, in: query, required: true, type: integer }
+        - { name: year, in: query, required: true, type: integer }
+      responses:
+        '200': { description: OK }
+  /api/v1/payments:
+    post:
+      operationId: payBill
+      security:
+        - billwise_jwt: []
+      responses:
+        '200': { description: OK }
+  /api/v1/usage:
+    post:
+      operationId: addUsage
+      security:
+        - billwise_jwt: []
+      responses:
+        '201': { description: Created }
+  /api/v1/bills/calculate:
+    post:
+      operationId: calculateBill
+      security:
+        - billwise_jwt: []
+      responses:
+        '200': { description: OK }

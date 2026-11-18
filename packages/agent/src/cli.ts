@@ -40,7 +40,7 @@ async function login(billing: BillingClient, term: ReturnType<typeof terminal>):
 }
 
 async function main(): Promise<void> {
-  loadEnvFile();
+  const envOverlay = loadEnvFile();
   const config = loadAgentConfig(process.env);
   const log = (m: string) => console.log(m);
   const billing = new BillingClient(config.BILLING_API_URL);
@@ -50,7 +50,8 @@ async function main(): Promise<void> {
   const term = terminal();
 
   console.log(
-    `billwise agent — ${llm.name}, docs via ${docs.transport}, API ${config.BILLING_API_URL}`,
+    `billwise agent — ${llm.name}, docs via ${docs.transport}, API ${config.BILLING_API_URL}` +
+      (envOverlay ? ` (env: ${envOverlay})` : ''),
   );
   let session = await login(billing, term);
   console.log(`Logged in as ${session.subscriberNo}. Type "exit" to quit. / Çıkmak için "exit".\n`);
