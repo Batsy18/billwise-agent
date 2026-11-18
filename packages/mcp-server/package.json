@@ -5,12 +5,28 @@
   "description": "MCP server exposing search_billing_documentation over the indexed billing guide.",
   "author": "Mustafa Batu Demir",
   "license": "MIT",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/http.js",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.build.json && node dist/scripts/build-index.js",
+    "build-index": "tsx src/scripts/build-index.ts",
+    "start": "node dist/http.js",
+    "start:stdio": "node dist/stdio.js",
+    "dev": "tsx watch src/http.ts",
+    "call-tool": "tsx src/scripts/call-tool.ts",
     "test": "jest",
     "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
+    "minisearch": "^7.2.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.2",
+    "tsx": "^4.23.15"
   }
 }

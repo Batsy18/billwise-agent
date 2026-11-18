@@ -7,3 +7,6 @@ package-lock.json
 CLAUDE.md
 packages/billing-api/src/generated/
 packages/billing-api/prisma/migrations/
+packages/mcp-server/generated/
+# instructor document: keep byte-for-byte
+packages/mcp-server/data/

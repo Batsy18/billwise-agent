@@ -32,3 +32,6 @@ Thumbs.db
 
 # generated Prisma client (recreated by `prisma generate` / postinstall)
 packages/billing-api/src/generated/
+
+# MCP search index (rebuilt by `npm run build-index`, also part of `npm run build`)
+packages/mcp-server/generated/
