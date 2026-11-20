@@ -1,5 +1,5 @@
 /**
- * stdio transport for local MCP clients (MCP Inspector, Claude Desktop, the agent in dev).
+ * stdio transport for local MCP clients (MCP Inspector, desktop MCP clients, the agent in dev).
  * stdout carries the protocol, so every log line goes to stderr.
  *
  *   npm run start:stdio -w @billwise/mcp-server

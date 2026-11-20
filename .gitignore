@@ -18,10 +18,7 @@ coverage/
 # agent traces (keep curated examples under docs/)
 packages/agent/traces/
 
-# local AI assistant config (kept on this machine only)
-CLAUDE.md
-CLAUDE.local.md
-.claude/
+# local tool state (kept on this machine only)
 .remember/
 
 # OS / editor

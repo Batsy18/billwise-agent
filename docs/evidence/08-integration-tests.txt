@@ -1,0 +1,27 @@
+billwise-agent — billing-api integration tests (real PostgreSQL 16)
+==================================================================
+Command : npm run test:int                (needs `npm run db:up`; uses DATABASE_URL_TEST, name must end in _test)
+Date    : 2026-11-20
+Database: local Docker postgres:16-alpine, database billwise_test (created + migrated by globalSetup;
+          each test truncates and inserts its own data — the dev seed is never touched)
+
+Tests: 14 passed, 14 total   (failed: 0)
+
+  ✓ health against a real database › GET /api/v1/health/ready → 200 (127 ms)
+  ✓ health against a real database › login works against stored bcrypt hashes (68 ms)
+  ✓ Calculate Bill (Prisma) › stores decimal(10,2) values and recalculation keeps paid_amount (2862 ms)
+  ✓ Calculate Bill (Prisma) › 5551000002 Nov 2026 demo: usage exists, no bill → 404, calculate → stored (323 ms)
+  ✓ Pay Bill (Prisma, one transaction) › partial then full; cents ↔ Decimal round-trip exactly (30.55 + 49.45) (2885 ms)
+  ✓ Pay Bill (Prisma, one transaction) › duplicate transactionId → 409 with existingPayment; nothing written twice (2848 ms)
+  ✓ Pay Bill (Prisma, one transaction) › someone else's transactionId → plain 409 (2846 ms)
+  ✓ Pay Bill (Prisma, one transaction) › 422 rolls back: no payment row, paid_amount unchanged (2917 ms)
+  ✓ Pay Bill (Prisma, one transaction) › concurrent payments are serialised by the row lock: 5 × $20 on $80 → 4 succeed (2841 ms)
+  ✓ Pay Bill (Prisma, one transaction) › concurrent retries with the same transactionId → exactly one payment (2706 ms)
+  ✓ Pay Bill (Prisma, one transaction) › no calculated bill → 404 and the transaction writes nothing (50 ms)
+  ✓ Add Usage + concurrent Calculate (Prisma) › POST /usage stores events that Calculate then totals (63 ms)
+  ✓ Add Usage + concurrent Calculate (Prisma) › two first-time calculations racing → both 200, exactly one bill row (111 ms)
+  ✓ Query Bill Detailed paging (Prisma) › order (created_at, id) is stable across pages; ties broken by id (148 ms)
+
+What this suite proves beyond the unit tests: the Prisma repositories (decimal(10,2) ↔ integer
+cents), the row lock on Pay Bill (5 concurrent $20 payments on an $80 bill → exactly 4 succeed),
+the UNIQUE transactionId under concurrent retries, rollbacks on 422/404, and stable paging order.

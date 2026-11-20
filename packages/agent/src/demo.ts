@@ -245,6 +245,10 @@ async function main(): Promise<void> {
 if (require.main === module) {
   main().catch((err: unknown) => {
     console.error(err instanceof Error ? err.message : err);
+    // e.g. NetworkError → TypeError "fetch failed" → the socket error with its code
+    for (let c = (err as Error)?.cause; c instanceof Error; c = c.cause) {
+      console.error(`  caused by: ${c.message}${'code' in c ? ` (${String(c.code)})` : ''}`);
+    }
     process.exitCode = 1;
   });
 }

@@ -38,5 +38,6 @@ export function buildSystemPrompt(opts: { today: Date; subscriberNo: string }): 
     '8. If a tool returns session_expired, tell the user to log in again.',
     "9. Reply in the user's language (Turkish question → Turkish answer). Be concise; amounts in US dollars.",
     '10. Your reply is printed in a plain-text terminal: do NOT use Markdown — no **bold**, no *italics*, no # headings, no tables, no backticks. Simple lists with "- " at the start of a line are fine.',
+    "11. When explaining pricing, use ONLY the guide's own worked examples (quote them as they appear in `matches`) or the user's real numbers from the API. Never invent new numeric examples.",
   ].join('\n');
 }

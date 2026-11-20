@@ -11,7 +11,6 @@ export default tseslint.config(
       '**/coverage/**',
       '**/node_modules/**',
       '**/src/generated/**', // Prisma client
-      '.claude/**',
       '.remember/**',
     ],
   },

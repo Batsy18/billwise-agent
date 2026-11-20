@@ -2,14 +2,13 @@ node_modules/
 dist/
 coverage/
 package-lock.json
-.claude/
 .remember/
-CLAUDE.md
 packages/billing-api/src/generated/
 packages/billing-api/prisma/migrations/
 packages/mcp-server/generated/
 # instructor document: keep byte-for-byte
 packages/mcp-server/data/
 
-# raw API Gateway response kept byte-for-byte (README evidence)
+# raw evidence kept byte-for-byte (gateway response, agent traces)
 infra/gateway-401-example.json
+docs/evidence/traces/

@@ -1,0 +1,137 @@
+billwise-agent — unit test run with coverage
+=============================================
+Command : npm run test:coverage          (root Jest, 3 projects, ts-jest)
+Date    : 2026-11-20
+Runs with NO database, NO cloud and NO live LLM: in-memory repository fakes, a mock LLM
+provider and a fake MCP client. (Integration tests against Postgres: 08-integration-tests.txt)
+
+Result  : Test Suites: 30 passed, 30 total
+          Tests:       366 passed, 366 total   (failed: 0)
+
+Per package:
+  agent         9 suites   92 tests
+  billing-api  15 suites  200 tests
+  mcp-server    6 suites   74 tests
+
+Test files:
+  PASS packages/agent/src/agent.test.ts                                16 tests
+  PASS packages/agent/src/demo.test.ts                                  3 tests
+  PASS packages/agent/src/env-files.test.ts                             4 tests
+  PASS packages/agent/src/llm/gemini.test.ts                           11 tests
+  PASS packages/agent/src/llm/timeout.test.ts                           6 tests
+  PASS packages/agent/src/misc.test.ts                                 11 tests
+  PASS packages/agent/src/timing.test.ts                                6 tests
+  PASS packages/agent/src/tools/gate-trace.test.ts                      5 tests
+  PASS packages/agent/src/tools/payment-gate.test.ts                   30 tests
+  PASS packages/billing-api/src/auth/keys.test.ts                       3 tests
+  PASS packages/billing-api/src/config.test.ts                          3 tests
+  PASS packages/billing-api/src/db/seed-data.test.ts                   11 tests
+  PASS packages/billing-api/src/db/seed-guard.test.ts                   3 tests
+  PASS packages/billing-api/src/domain/billing.test.ts                 36 tests
+  PASS packages/billing-api/src/domain/money.test.ts                   36 tests
+  PASS packages/billing-api/src/http/request-log.test.ts                4 tests
+  PASS packages/billing-api/src/routes/auth.routes.test.ts             22 tests
+  PASS packages/billing-api/src/routes/calculate.routes.test.ts        10 tests
+  PASS packages/billing-api/src/routes/docs.routes.test.ts             12 tests
+  PASS packages/billing-api/src/routes/gateway-config.test.ts           7 tests
+  PASS packages/billing-api/src/routes/payments.routes.test.ts         19 tests
+  PASS packages/billing-api/src/routes/query.routes.test.ts            18 tests
+  PASS packages/billing-api/src/routes/usage.routes.test.ts            12 tests
+  PASS packages/billing-api/src/scripts/generate-keys.test.ts           4 tests
+  PASS packages/mcp-server/src/chunker.test.ts                          9 tests
+  PASS packages/mcp-server/src/http.test.ts                             8 tests
+  PASS packages/mcp-server/src/index-file.test.ts                       5 tests
+  PASS packages/mcp-server/src/search.test.ts                          28 tests
+  PASS packages/mcp-server/src/server.test.ts                           9 tests
+  PASS packages/mcp-server/src/stem.test.ts                            15 tests
+
+Coverage summary (all source files, including untested entry points):
+  Statements   : 73.86% ( 1286/1741 )
+  Branches     : 68.75% ( 539/784 )
+  Functions    : 73.23% ( 260/355 )
+  Lines        : 75.63% ( 1198/1584 )
+
+Files at 0 %: process entry points and scripts that need real I/O (billing-api index.ts,
+db/client.ts, db/seed.ts, repositories/prisma.ts — covered by the integration suite instead;
+agent cli.ts; mcp-server stdio.ts and scripts/). See README → Testing.
+
+Coverage per file (jest --coverage, text reporter):
+------------------------------|---------|----------|---------|---------|------------------------------
+File                          | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s            
+------------------------------|---------|----------|---------|---------|------------------------------
+All files                     |   73.86 |    68.75 |   73.23 |   75.63 |                              
+ agent/src                    |   51.31 |    52.38 |   59.67 |    53.7 |                              
+  agent.ts                    |    97.5 |     87.5 |     100 |     100 | 52,94                        
+  cli.ts                      |       0 |        0 |       0 |       0 | 5-89                         
+  config.ts                   |   91.66 |    79.16 |     100 |   93.75 | 89-90                        
+  demo.ts                     |   20.74 |    13.23 |    37.5 |   21.05 | 72-134,140-241,246-252       
+  prompt.ts                   |     100 |      100 |     100 |     100 |                              
+  setup.ts                    |   56.52 |    38.46 |   14.28 |   59.09 | 34,42,63-79,90-91            
+  trace.ts                    |   97.33 |    85.91 |   94.73 |     100 | 48,50,63-72,74-81,94,158,165 
+ agent/src/clients            |   79.22 |    56.52 |   72.22 |   80.88 |                              
+  billing.ts                  |   97.56 |    72.72 |      90 |     100 | 60,73-82,140                 
+  docs.ts                     |   58.33 |    41.66 |      50 |   59.37 | 61,83-107                    
+ agent/src/llm                |    90.2 |    80.19 |   88.88 |   91.47 |                              
+  gemini.ts                   |   98.52 |       86 |     100 |   98.43 | 53                           
+  mock.ts                     |   60.71 |       30 |   71.42 |   56.52 | 27,45-64                     
+  retry.ts                    |   95.45 |    85.36 |   71.42 |     100 | 38-43,49-52,77,84            
+  types.ts                    |     100 |      100 |     100 |     100 |                              
+ agent/src/tools              |   89.51 |    78.75 |   85.71 |   92.24 |                              
+  executor.ts                 |   92.85 |    76.19 |     100 |    92.5 | 82,89,106                    
+  payment-gate.ts             |   89.61 |    86.04 |   66.66 |   93.93 | 90,114-116                   
+  rest-tools.ts               |     100 |      100 |     100 |     100 |                              
+  results.ts                  |   78.94 |     62.5 |     100 |   83.33 | 31,33,35                     
+ billing-api/src              |    58.9 |       50 |      25 |    60.6 |                              
+  app.ts                      |   97.14 |    66.66 |      50 |     100 | 51-54                        
+  config.ts                   |     100 |      100 |     100 |     100 |                              
+  index.ts                    |       0 |        0 |       0 |       0 | 6-59                         
+ billing-api/src/auth         |   96.36 |    89.28 |     100 |     100 |                              
+  keys.ts                     |   93.33 |     87.5 |     100 |     100 | 35                           
+  middleware.ts               |   96.55 |    94.44 |     100 |     100 | 37                           
+  tokens.ts                   |     100 |       50 |     100 |     100 | 54                           
+ billing-api/src/db           |   35.52 |    57.14 |   23.07 |   37.31 |                              
+  client.ts                   |       0 |      100 |       0 |       0 | 1-6                          
+  seed-data.ts                |      96 |    88.88 |     100 |     100 | 147                          
+  seed-guard.ts               |     100 |      100 |     100 |     100 |                              
+  seed.ts                     |       0 |        0 |       0 |       0 | 7-104                        
+ billing-api/src/domain       |   97.26 |    94.44 |     100 |   97.14 |                              
+  billing.ts                  |   97.87 |    94.44 |     100 |   97.77 | 140                          
+  money.ts                    |   96.15 |    94.44 |     100 |      96 | 42                           
+ billing-api/src/http         |   92.53 |    72.34 |   83.33 |      95 |                              
+  errors.ts                   |     100 |      100 |     100 |     100 |                              
+  middleware.ts               |   93.75 |    78.26 |     100 |    93.1 | 54-55                        
+  request-log.ts              |   88.46 |    66.66 |      70 |   95.45 | 65                           
+ billing-api/src/repositories |   50.72 |    52.83 |   44.89 |   52.89 |                              
+  memory.ts                   |   91.66 |       80 |    87.5 |   98.36 | 150                          
+  prisma.ts                   |       0 |        0 |       0 |       0 | 5-209                        
+  types.ts                    |     100 |      100 |     100 |     100 |                              
+ billing-api/src/routes       |     100 |      100 |     100 |     100 |                              
+  auth.routes.ts              |     100 |      100 |     100 |     100 |                              
+  bills.routes.ts             |     100 |      100 |     100 |     100 |                              
+  docs.routes.ts              |     100 |      100 |     100 |     100 |                              
+  health.routes.ts            |     100 |      100 |     100 |     100 |                              
+  payments.routes.ts          |     100 |      100 |     100 |     100 |                              
+  schemas.ts                  |     100 |      100 |     100 |     100 |                              
+  usage.routes.ts             |     100 |      100 |     100 |     100 |                              
+ billing-api/src/scripts      |      64 |    61.11 |      50 |      64 |                              
+  generate-keys.ts            |      64 |    61.11 |      50 |      64 | 33-41,45-49                  
+ billing-api/src/services     |     100 |      100 |     100 |     100 |                              
+  auth.service.ts             |     100 |      100 |     100 |     100 |                              
+  bill.service.ts             |     100 |      100 |     100 |     100 |                              
+  payment.service.ts          |     100 |      100 |     100 |     100 |                              
+  presenters.ts               |     100 |      100 |     100 |     100 |                              
+  usage.service.ts            |     100 |      100 |     100 |     100 |                              
+ mcp-server/src               |   90.67 |    89.13 |    90.9 |   90.61 |                              
+  chunker.ts                  |   97.82 |    96.55 |     100 |     100 | 94                           
+  config.ts                   |     100 |      100 |     100 |     100 |                              
+  http.ts                     |   75.92 |    53.84 |   81.81 |   76.47 | 75-76,89-94,102-106          
+  index-file.ts               |     100 |    85.71 |     100 |     100 | 41                           
+  paths.ts                    |     100 |      100 |     100 |     100 |                              
+  search.ts                   |   98.46 |      100 |   95.83 |   98.18 | 129                          
+  server.ts                   |     100 |      100 |     100 |     100 |                              
+  stdio.ts                    |       0 |        0 |       0 |       0 | 7-22                         
+  stem.ts                     |     100 |      100 |     100 |     100 |                              
+ mcp-server/src/scripts       |       0 |        0 |       0 |       0 |                              
+  build-index.ts              |       0 |        0 |       0 |       0 | 6-22                         
+  call-tool.ts                |       0 |        0 |       0 |       0 | 6-41                         
+------------------------------|---------|----------|---------|---------|------------------------------

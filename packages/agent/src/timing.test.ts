@@ -105,3 +105,14 @@ describe('plain-text answers', () => {
     expect(p).toContain('Simple lists with "- "');
   });
 });
+
+describe('no invented numeric examples', () => {
+  // Cloud demo 2026-11-18, scenario a: the model invented "21 GB → two blocks, $20" (the guide
+  // says one block, $10). Pricing explanations may only use the guide's examples or API numbers.
+  it("the system prompt restricts pricing examples to the guide's own and the user's real numbers", () => {
+    const p = buildSystemPrompt({ today: new Date('2026-11-18T00:00:00Z'), subscriberNo: ME });
+    expect(p).toContain(
+      "11. When explaining pricing, use ONLY the guide's own worked examples (quote them as they appear in `matches`) or the user's real numbers from the API. Never invent new numeric examples.",
+    );
+  });
+});

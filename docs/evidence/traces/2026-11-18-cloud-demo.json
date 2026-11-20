@@ -1,0 +1,852 @@
+{
+  "mode": "demo",
+  "llm": "gemini:gemini-3.5-flash-lite",
+  "docsTransport": "http",
+  "subscriber": "5551000002",
+  "usage": {
+    "inputTokens": 28220,
+    "outputTokens": 1179,
+    "thinkingTokens": 0,
+    "requests": 16
+  },
+  "exchanges": [
+    {
+      "question": "Ek internet ne kadar?",
+      "startedAt": "2026-11-18T20:05:28.905Z",
+      "steps": [
+        {
+          "type": "llm",
+          "turn": 1,
+          "durationMs": 1277,
+          "usage": {
+            "inputTokens": 1533,
+            "outputTokens": 21,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 0,
+            "retries": [],
+            "apiMs": 1277,
+            "attempts": 1
+          },
+          "toolCalls": [
+            "search_billing_documentation"
+          ]
+        },
+        {
+          "type": "tool",
+          "name": "search_billing_documentation",
+          "input": {
+            "query": "cost of extra internet"
+          },
+          "result": {
+            "document": "Mobile_Provider_Billing_Guide.md",
+            "documentId": "MOB-BILLING-2026-01",
+            "matches": [
+              {
+                "section": "8.1",
+                "heading": "What is the cost of extra internet?",
+                "text": "Each additional 10 GB block beyond 20 GB costs $10. Partially used blocks are rounded up. See Section 3.2.",
+                "score": 62.76
+              },
+              {
+                "section": "3.1",
+                "heading": "Included internet allowance",
+                "text": "Internet access costs $50 per month for up to 20 GB, including months with zero usage.",
+                "score": 28.78
+              },
+              {
+                "section": "3.2",
+                "heading": "Additional internet blocks",
+                "text": "Each additional 10 GB block costs $10. A partially used additional block is charged as a full block. For example, 20 GB costs $50; 21 GB costs $60; 30 GB costs $60; 35 GB costs $70.",
+                "score": 26.54
+              },
+              {
+                "section": "4.3",
+                "heading": "Worked example",
+                "text": "A subscriber uses 1,350 phone minutes and 35 GB of internet in a month. Phone: $10 for one extra 1,000-minute block. Internet: $50 base + $20 for two additional 10 GB blocks. Total = $80.",
+                "score": 12.91
+              },
+              {
+                "section": "3.3",
+                "heading": "Units and usage events",
+                "text": "For this fictitious system, 1 GB = 1,000 MB. Each internet Add Usage API event records 1 MB. The billing engine aggregates usage for the selected month and year.",
+                "score": 5.24
+              }
+            ]
+          },
+          "durationMs": 82
+        },
+        {
+          "type": "llm",
+          "turn": 2,
+          "durationMs": 4457,
+          "usage": {
+            "inputTokens": 1969,
+            "outputTokens": 98,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 2739,
+            "retries": [],
+            "apiMs": 1709,
+            "attempts": 1
+          },
+          "toolCalls": []
+        },
+        {
+          "type": "final",
+          "answer": "Ek internet ücreti Bölüm 8.1 ve Bölüm 3.2'ye göre: 20 GB'lık dahil internet hakkını aştıktan sonra, her ek 10 GB'lık blok 10 dolardır. Kısmen kullanılan ek bloklar tam blok olarak ücretlendirilir (örneğin 21 GB kullanım 30 GB olarak ücretlendirilir ve toplam ek internet maliyeti iki blok için 20 dolar olur).",
+          "reason": "llm"
+        }
+      ]
+    },
+    {
+      "question": "Ekim faturam ne kadar?",
+      "startedAt": "2026-11-18T20:05:34.722Z",
+      "steps": [
+        {
+          "type": "llm",
+          "turn": 1,
+          "durationMs": 3138,
+          "usage": {
+            "inputTokens": 1536,
+            "outputTokens": 22,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 2391,
+            "retries": [],
+            "apiMs": 736,
+            "attempts": 1
+          },
+          "toolCalls": [
+            "query_bill"
+          ]
+        },
+        {
+          "type": "tool",
+          "name": "query_bill",
+          "input": {
+            "year": 2026,
+            "month": 10
+          },
+          "result": {
+            "status": "ok",
+            "bill": {
+              "subscriberNo": "5551000002",
+              "month": 10,
+              "year": 2026,
+              "total": 80,
+              "paidAmount": 0,
+              "remainingBalance": 80,
+              "status": "UNPAID",
+              "dueDate": "2026-11-15"
+            }
+          },
+          "durationMs": 560
+        },
+        {
+          "type": "llm",
+          "turn": 2,
+          "durationMs": 3496,
+          "usage": {
+            "inputTokens": 1641,
+            "outputTokens": 67,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 2804,
+            "retries": [],
+            "apiMs": 680,
+            "attempts": 1
+          },
+          "toolCalls": []
+        },
+        {
+          "type": "final",
+          "answer": "Ekim 2026 faturanız 80.00 ABD dolarıdır. Ödenmemiş kalan bakiye de 80.00 ABD dolarıdır ve son ödeme tarihi 15 Kasım 2026'dır. Fatura durumu ödenmemiştir (UNPAID).",
+          "reason": "llm"
+        }
+      ]
+    },
+    {
+      "question": "Ekim faturam neden yüksek?",
+      "startedAt": "2026-11-18T20:05:41.916Z",
+      "steps": [
+        {
+          "type": "llm",
+          "turn": 1,
+          "durationMs": 4294,
+          "usage": {
+            "inputTokens": 1536,
+            "outputTokens": 53,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 3420,
+            "retries": [],
+            "apiMs": 874,
+            "attempts": 1
+          },
+          "toolCalls": [
+            "query_bill_detailed",
+            "search_billing_documentation"
+          ]
+        },
+        {
+          "type": "tool",
+          "name": "query_bill_detailed",
+          "input": {
+            "year": 2026,
+            "month": 10
+          },
+          "result": {
+            "status": "ok",
+            "bill": {
+              "subscriberNo": "5551000002",
+              "month": 10,
+              "year": 2026,
+              "total": 80,
+              "paidAmount": 0,
+              "remainingBalance": 80,
+              "status": "UNPAID",
+              "dueDate": "2026-11-15",
+              "usage": {
+                "phoneMinutes": 1350,
+                "internetMB": 35000,
+                "internetGB": 35
+              },
+              "charges": {
+                "phone": {
+                  "includedMinutes": 1000,
+                  "extraBlocks": 1,
+                  "amount": 10
+                },
+                "internet": {
+                  "base": 50,
+                  "extraBlocks": 2,
+                  "amount": 70
+                }
+              },
+              "usageEvents": {
+                "items": [
+                  {
+                    "id": "005b3d8d-ff44-4830-b206-7d084bff0694",
+                    "usageType": "PHONE",
+                    "amount": 10,
+                    "unit": "MIN",
+                    "createdAt": "2026-11-18T20:05:20.192Z"
+                  },
+                  {
+                    "id": "02356435-38f4-4e89-961a-423e07f49d1b",
+                    "usageType": "PHONE",
+                    "amount": 10,
+                    "unit": "MIN",
+                    "createdAt": "2026-11-18T20:05:20.192Z"
+                  },
+                  {
+                    "id": "02906e89-4492-4f39-9e74-a8071fc89dba",
+                    "usageType": "PHONE",
+                    "amount": 10,
+                    "unit": "MIN",
+                    "createdAt": "2026-11-18T20:05:20.192Z"
+                  },
+                  {
+                    "id": "055a42ac-fd02-4888-b817-03bdb2499ee6",
+                    "usageType": "PHONE",
+                    "amount": 10,
+                    "unit": "MIN",
+                    "createdAt": "2026-11-18T20:05:20.192Z"
+                  },
+                  {
+                    "id": "070a0889-0a6d-4bcc-948c-c98ada6a31ad",
+                    "usageType": "PHONE",
+                    "amount": 10,
+                    "unit": "MIN",
+                    "createdAt": "2026-11-18T20:05:20.192Z"
+                  },
+                  {
+                    "id": "081772b4-ede4-4cca-a52c-0784ce0af457",
+                    "usageType": "PHONE",
+                    "amount": 10,
+                    "unit": "MIN",
+                    "createdAt": "2026-11-18T20:05:20.192Z"
+                  },
+                  {
+                    "id": "09f20677-9f13-4b5a-837b-e71549f9b4d2",
+                    "usageType": "PHONE",
+                    "amount": 10,
+                    "unit": "MIN",
+                    "createdAt": "2026-11-18T20:05:20.192Z"
+                  },
+                  {
+                    "id": "0c155620-b0ae-4720-9e96-fb92afede095",
+                    "usageType": "PHONE",
+                    "amount": 10,
+                    "unit": "MIN",
+                    "createdAt": "2026-11-18T20:05:20.192Z"
+                  },
+                  {
+                    "id": "122d1560-e683-4c35-8c8a-01de459551ef",
+                    "usageType": "PHONE",
+                    "amount": 10,
+                    "unit": "MIN",
+                    "createdAt": "2026-11-18T20:05:20.192Z"
+                  },
+                  {
+                    "id": "1406ac19-f2f1-4449-85f7-8a73f642ff48",
+                    "usageType": "PHONE",
+                    "amount": 10,
+                    "unit": "MIN",
+                    "createdAt": "2026-11-18T20:05:20.192Z"
+                  }
+                ],
+                "page": 1,
+                "pageSize": 10,
+                "totalItems": 35135,
+                "totalPages": 3514
+              },
+              "calculatedAt": "2026-11-18T20:05:26.931Z"
+            }
+          },
+          "durationMs": 580
+        },
+        {
+          "type": "tool",
+          "name": "search_billing_documentation",
+          "input": {
+            "query": "why is my bill higher this month extra internet phone call pricing"
+          },
+          "result": {
+            "document": "Mobile_Provider_Billing_Guide.md",
+            "documentId": "MOB-BILLING-2026-01",
+            "matches": [
+              {
+                "section": "2.1",
+                "heading": "Included minutes",
+                "text": "The first 1,000 minutes of phone calls in a billing month are free.",
+                "score": 84.72
+              },
+              {
+                "section": "4.3",
+                "heading": "Worked example",
+                "text": "A subscriber uses 1,350 phone minutes and 35 GB of internet in a month. Phone: $10 for one extra 1,000-minute block. Internet: $50 base + $20 for two additional 10 GB blocks. Total = $80.",
+                "score": 54.12
+              },
+              {
+                "section": "3.1",
+                "heading": "Included internet allowance",
+                "text": "Internet access costs $50 per month for up to 20 GB, including months with zero usage.",
+                "score": 47.91
+              },
+              {
+                "section": "1",
+                "heading": "Scope and terminology",
+                "text": "Subscriber number identifies a mobile account. Billing period is a calendar month and year. Phone usage is measured in minutes. Internet usage is measured in MB and converted to GB for pricing. Paid status indicates whether the bill has been fully settled in the billing database.",
+                "score": 44.59
+              },
+              {
+                "section": "8.2",
+                "heading": "Why is my bill higher this month?",
+                "text": "Use Query Bill Detailed to retrieve actual usage and charge breakdown, then use Sections 2–4 to explain the applicable rules. Do not invent usage amounts.",
+                "score": 43.83
+              }
+            ]
+          },
+          "durationMs": 458
+        },
+        {
+          "type": "llm",
+          "turn": 2,
+          "durationMs": 3802,
+          "usage": {
+            "inputTokens": 3025,
+            "outputTokens": 294,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 2188,
+            "retries": [],
+            "apiMs": 1608,
+            "attempts": 1
+          },
+          "toolCalls": []
+        },
+        {
+          "type": "final",
+          "answer": "Ekim 2026 faturanız 80.00 US dolarıdır. Faturanızın yüksek olmasının sebebi, dahili limitlerinizi aşarak ek kullanım yapmış olmanızdır. Ekim ayındaki detaylı kullanımınız ve ücretlendirme kuralları şu şekildedir:\n\n- Telefon kullanımı: 1.350 dakika kullandınız. Bölüm 2.1'e göre ilk 1.000 dakika ücrete dahildir. Ekstra 350 dakika için 1 adet ek 1.000 dakikalık blok ücreti olarak 10.00 US doları yansıtılmıştır (Bölüm 4.3).\n- İnternet kullanımı: 35 GB (35.000 MB) kullandınız. Bölüm 3.1'e göre aylık baz ücret 20 GB'a kadar 50.00 US dolarıdır. 20 GB üzerindeki kullanım için her 10 GB'lık ek blok başına ücret uygulanır; 35 GB kullanımınız için 2 ek blok (toplam 20.00 US doları) eklenmiş ve internet toplamı 70.00 US doları olmuştur (Bölüm 4.3).\n\nToplam tutar 80.00 US dolarıdır (Bölüm 4.3).",
+          "reason": "llm"
+        }
+      ]
+    },
+    {
+      "question": "Ekim faturamın 30 dolarını öde",
+      "startedAt": "2026-11-18T20:05:51.050Z",
+      "steps": [
+        {
+          "type": "llm",
+          "turn": 1,
+          "durationMs": 3159,
+          "usage": {
+            "inputTokens": 1541,
+            "outputTokens": 27,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 2492,
+            "retries": [],
+            "apiMs": 660,
+            "attempts": 1
+          },
+          "toolCalls": [
+            "pay_bill"
+          ]
+        },
+        {
+          "type": "tool",
+          "name": "pay_bill",
+          "input": {
+            "year": 2026,
+            "month": 10,
+            "amount": 30
+          },
+          "result": {
+            "status": "paid",
+            "transactionId": "42b93959-acc3-4e8d-b15f-9025331c9833",
+            "payment": {
+              "paymentStatus": "SUCCESS",
+              "transactionId": "42b93959-acc3-4e8d-b15f-9025331c9833",
+              "amount": 30,
+              "paidAmount": 30,
+              "remainingBalance": 50,
+              "billStatus": "PARTIALLY_PAID"
+            }
+          },
+          "durationMs": 1253,
+          "events": [
+            {
+              "event": "balance_check",
+              "httpStatus": 200,
+              "total": 80,
+              "remainingBalance": 80,
+              "billStatus": "UNPAID",
+              "elapsedMs": 576
+            },
+            {
+              "event": "confirmation_shown",
+              "summary": {
+                "subscriberNo": "5551000002",
+                "month": 10,
+                "year": 2026,
+                "amount": 30,
+                "total": 80,
+                "remainingBalance": 80,
+                "dueDate": "2026-11-15"
+              },
+              "elapsedMs": 576
+            },
+            {
+              "event": "user_answer",
+              "answer": "EVET",
+              "confirmed": true,
+              "elapsedMs": 576
+            },
+            {
+              "event": "transaction_id",
+              "transactionId": "42b93959-acc3-4e8d-b15f-9025331c9833",
+              "elapsedMs": 577
+            },
+            {
+              "event": "pay_attempt",
+              "attempt": 1,
+              "transactionId": "42b93959-acc3-4e8d-b15f-9025331c9833",
+              "result": "HTTP 200",
+              "elapsedMs": 1253
+            },
+            {
+              "event": "api_result",
+              "httpStatus": 200,
+              "outcome": "paid",
+              "elapsedMs": 1253
+            }
+          ]
+        },
+        {
+          "type": "llm",
+          "turn": 2,
+          "durationMs": 2990,
+          "usage": {
+            "inputTokens": 1700,
+            "outputTokens": 60,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 2187,
+            "retries": [],
+            "apiMs": 802,
+            "attempts": 1
+          },
+          "toolCalls": []
+        },
+        {
+          "type": "final",
+          "answer": "Ekim 2026 faturanız için 30,00 dolar ödeme başarıyla gerçekleştirilmiştir. Ödeme durumunuz kısmi ödeme (PARTIALLY_PAID) olarak güncellenmiştir ve kalan bakiyeniz 50,00 dolardır.",
+          "reason": "llm"
+        }
+      ]
+    },
+    {
+      "question": "Faturamı ödemezsem ne olur?",
+      "startedAt": "2026-11-18T20:05:58.452Z",
+      "steps": [
+        {
+          "type": "llm",
+          "turn": 1,
+          "durationMs": 4046,
+          "usage": {
+            "inputTokens": 1538,
+            "outputTokens": 21,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 3298,
+            "retries": [],
+            "apiMs": 747,
+            "attempts": 1
+          },
+          "toolCalls": [
+            "search_billing_documentation"
+          ]
+        },
+        {
+          "type": "tool",
+          "name": "search_billing_documentation",
+          "input": {
+            "query": "late payment service restriction"
+          },
+          "result": {
+            "document": "Mobile_Provider_Billing_Guide.md",
+            "documentId": "MOB-BILLING-2026-01",
+            "matches": [
+              {
+                "section": "6.3",
+                "heading": "Service restriction",
+                "text": "Service may be restricted when a bill remains unpaid for 30 days after the due date, subject to customer support review. This is a policy description, not a live service-status check.",
+                "score": 137.11
+              },
+              {
+                "section": "6.2",
+                "heading": "Late payment reminder",
+                "text": "An unpaid bill may trigger a reminder after its due date. The reminder itself does not add a fee.",
+                "score": 63.26
+              },
+              {
+                "section": "6.1",
+                "heading": "Due date",
+                "text": "A monthly bill is due 15 calendar days after the end of its billing month. For example, an October 2026 bill is due November 15, 2026.",
+                "score": 21.53
+              },
+              {
+                "section": "5.2",
+                "heading": "Payment confirmation",
+                "text": "Before the AI assistant submits a payment, it must identify the subscriber, billing period, and amount and request explicit confirmation. It must not infer consent from a request for payment information.",
+                "score": 10.91
+              },
+              {
+                "section": "5.3",
+                "heading": "Payment result",
+                "text": "The assistant should report success only after the Pay Bill API confirms the transaction. Retries should use idempotency protection to avoid duplicate payment records.",
+                "score": 10.31
+              }
+            ]
+          },
+          "durationMs": 433
+        },
+        {
+          "type": "llm",
+          "turn": 2,
+          "durationMs": 4985,
+          "usage": {
+            "inputTokens": 1912,
+            "outputTokens": 150,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 2920,
+            "retries": [],
+            "apiMs": 2064,
+            "attempts": 1
+          },
+          "toolCalls": []
+        },
+        {
+          "type": "final",
+          "answer": "Faturanızı ödemezseniz uygulanabilecek süreçler Bölüm 6 kurallarına göre şöyledir:\n\n- Bölüm 6.1: Aylık faturalar, ilgili fatura döneminin bitiminden 15 takvim günü sonra son ödeme tarihine ulaşır.\n- Bölüm 6.2: Ödenmemiş bir fatura için son ödeme tarihinden sonra bir ödeme hatırlatması gönderilebilir. Hatırlatma tek başına ek bir ücret eklemez.\n- Bölüm 6.3: Fatura, son ödeme tarihinden sonra 30 gün boyunca ödenmezse müşteri hizmetleri incelemesine bağlı olarak servis kısıtlaması uygulanabilir.",
+          "reason": "llm"
+        }
+      ]
+    },
+    {
+      "question": "Faturama itiraz etmek istiyorum, şikâyetimi nasıl yaparım?",
+      "startedAt": "2026-11-18T20:06:07.916Z",
+      "steps": [
+        {
+          "type": "llm",
+          "turn": 1,
+          "durationMs": 3683,
+          "usage": {
+            "inputTokens": 1546,
+            "outputTokens": 19,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 2036,
+            "retries": [],
+            "apiMs": 1641,
+            "attempts": 1
+          },
+          "toolCalls": [
+            "search_billing_documentation"
+          ]
+        },
+        {
+          "type": "tool",
+          "name": "search_billing_documentation",
+          "input": {
+            "query": "dispute"
+          },
+          "result": {
+            "document": "Mobile_Provider_Billing_Guide.md",
+            "documentId": "MOB-BILLING-2026-01",
+            "matches": [
+              {
+                "section": "7.1",
+                "heading": "Dispute window",
+                "text": "Subscribers may submit a billing dispute within 15 calendar days of the bill issue date.",
+                "score": 13.9
+              },
+              {
+                "section": "8.4",
+                "heading": "How can I dispute a charge?",
+                "text": "Submit the billing period, disputed amount, and explanation within 15 days of bill issuance. See Section 7.",
+                "score": 9.41
+              },
+              {
+                "section": "7.2",
+                "heading": "Information required",
+                "text": "A dispute should include the subscriber number, billing period, disputed amount, and explanation. The AI assistant may explain this process but does not have a Dispute API in the required midterm endpoints.",
+                "score": 6.7
+              },
+              {
+                "section": "7.3",
+                "heading": "Review outcome",
+                "text": "Dispute decisions are made by customer support. The assistant must not promise a refund or adjustment without a supporting system record.",
+                "score": 5.96
+              }
+            ]
+          },
+          "durationMs": 464
+        },
+        {
+          "type": "llm",
+          "turn": 2,
+          "durationMs": 3364,
+          "usage": {
+            "inputTokens": 1827,
+            "outputTokens": 196,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 1995,
+            "retries": [],
+            "apiMs": 1368,
+            "attempts": 1
+          },
+          "toolCalls": []
+        },
+        {
+          "type": "final",
+          "answer": "Faturanıza itiraz etmek ve şikâyetinizi iletmek için izlemeniz gereken süreç faturaya itiraz kurallarına göre şu şekildedir:\n\n- İtiraz Süresi: Aboneler, fatura kesim tarihinden itibaren 15 takvim günü içinde fatura itirazında bulunabilir (Bölüm 7.1 ve 8.4).\n- Gerekli Bilgiler: İtiraz başvurunuzda abone numaranızı, ilgili fatura dönemini, itiraz edilen tutarı ve açıklamânızı belirtmeniz gerekir (Bölüm 7.2 ve 8.4).\n- Değerlendirme: İtiraz kararları müşteri destek ekibi tarafından alınır. Yapay zekâ asistanı olarak destekleyen bir sistem kaydı olmadan size geri ödeme veya düzeltme sözü veremem (Bölüm 7.3).",
+          "reason": "llm"
+        }
+      ]
+    },
+    {
+      "question": "Müşteri hizmetleri paramı geri verebilir mi?",
+      "startedAt": "2026-11-18T20:06:15.427Z",
+      "steps": [
+        {
+          "type": "llm",
+          "turn": 1,
+          "durationMs": 3564,
+          "usage": {
+            "inputTokens": 1540,
+            "outputTokens": 22,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 2732,
+            "retries": [],
+            "apiMs": 817,
+            "attempts": 1
+          },
+          "toolCalls": [
+            "search_billing_documentation"
+          ]
+        },
+        {
+          "type": "tool",
+          "name": "search_billing_documentation",
+          "input": {
+            "query": "dispute review outcome refund"
+          },
+          "result": {
+            "document": "Mobile_Provider_Billing_Guide.md",
+            "documentId": "MOB-BILLING-2026-01",
+            "matches": [
+              {
+                "section": "7.3",
+                "heading": "Review outcome",
+                "text": "Dispute decisions are made by customer support. The assistant must not promise a refund or adjustment without a supporting system record.",
+                "score": 117.33
+              },
+              {
+                "section": "7.1",
+                "heading": "Dispute window",
+                "text": "Subscribers may submit a billing dispute within 15 calendar days of the bill issue date.",
+                "score": 13.9
+              },
+              {
+                "section": "8.4",
+                "heading": "How can I dispute a charge?",
+                "text": "Submit the billing period, disputed amount, and explanation within 15 days of bill issuance. See Section 7.",
+                "score": 9.41
+              },
+              {
+                "section": "7.2",
+                "heading": "Information required",
+                "text": "A dispute should include the subscriber number, billing period, disputed amount, and explanation. The AI assistant may explain this process but does not have a Dispute API in the required midterm endpoints.",
+                "score": 6.7
+              },
+              {
+                "section": "6.3",
+                "heading": "Service restriction",
+                "text": "Service may be restricted when a bill remains unpaid for 30 days after the due date, subject to customer support review. This is a policy description, not a live service-status check.",
+                "score": 4.03
+              }
+            ]
+          },
+          "durationMs": 480
+        },
+        {
+          "type": "llm",
+          "turn": 2,
+          "durationMs": 3734,
+          "usage": {
+            "inputTokens": 1892,
+            "outputTokens": 45,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 2803,
+            "retries": [],
+            "apiMs": 919,
+            "attempts": 1
+          },
+          "toolCalls": []
+        },
+        {
+          "type": "final",
+          "answer": "Bölüm 7.3'e göre: İtiraz kararları müşteri desteği tarafından verilir. Asistan, destekleyici bir sistem kaydı olmadan geri ödeme veya düzenleme sözü vermemelidir.",
+          "reason": "llm"
+        }
+      ]
+    },
+    {
+      "question": "Faturaya vergi dahil mi?",
+      "startedAt": "2026-11-18T20:06:23.205Z",
+      "steps": [
+        {
+          "type": "llm",
+          "turn": 1,
+          "durationMs": 3812,
+          "usage": {
+            "inputTokens": 1536,
+            "outputTokens": 21,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 3181,
+            "retries": [],
+            "apiMs": 622,
+            "attempts": 1
+          },
+          "toolCalls": [
+            "search_billing_documentation"
+          ]
+        },
+        {
+          "type": "tool",
+          "name": "search_billing_documentation",
+          "input": {
+            "query": "tax bill calculation formula"
+          },
+          "result": {
+            "document": "Mobile_Provider_Billing_Guide.md",
+            "documentId": "MOB-BILLING-2026-01",
+            "matches": [
+              {
+                "section": "4.2",
+                "heading": "Calculation formula",
+                "text": "Phone charge = `$10 × ceil(max(0, minutes − 1000) / 1000)`.\n\nInternet charge = `$50 + $10 × ceil(max(0, internet_GB − 20) / 10)`.\n\nTotal bill = phone charge + internet charge. For this midterm, there are no taxes, activation fees, discounts, or other service charges.",
+                "score": 105.4
+              },
+              {
+                "section": "4.4",
+                "heading": "Bill generation",
+                "text": "The Calculate Bill API calculates and stores the bill for the specified subscriber, month, and year. The Query Bill API returns the stored bill total and paid status; the Query Bill Detailed API returns the charge breakdown. An AI assistant should not present a calculated estimate as a confirmed stored bill.",
+                "score": 19.39
+              },
+              {
+                "section": "4.1",
+                "heading": "Billing period",
+                "text": "Bills are calculated by calendar month. A bill includes phone charges and internet charges based on recorded usage for the period.",
+                "score": 17.58
+              },
+              {
+                "section": "4.3",
+                "heading": "Worked example",
+                "text": "A subscriber uses 1,350 phone minutes and 35 GB of internet in a month. Phone: $10 for one extra 1,000-minute block. Internet: $50 base + $20 for two additional 10 GB blocks. Total = $80.",
+                "score": 6.79
+              }
+            ]
+          },
+          "durationMs": 567
+        },
+        {
+          "type": "llm",
+          "turn": 2,
+          "durationMs": 4520,
+          "usage": {
+            "inputTokens": 1948,
+            "outputTokens": 63,
+            "thinkingTokens": 0
+          },
+          "timing": {
+            "pacingMs": 2911,
+            "retries": [],
+            "apiMs": 1604,
+            "attempts": 1
+          },
+          "toolCalls": []
+        },
+        {
+          "type": "final",
+          "answer": "Fatura hesaplama kurallarina gore (Bolum 4.2), toplam fatura telefon ucreti ve internet ucretinin toplamindan olusur ve bu donem icin faturaya vergi, aktivasyon ucreti, indirim veya diger hizmet ucretleri dahil degildir.",
+          "reason": "llm"
+        }
+      ]
+    }
+  ]
+}

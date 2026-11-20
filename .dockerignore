@@ -12,9 +12,6 @@ packages/billing-api/src/generated
 packages/mcp-server/generated
 packages/agent/traces
 infra
-CLAUDE.md
-CLAUDE.local.md
-.claude
 .remember
 .vscode
 .idea
