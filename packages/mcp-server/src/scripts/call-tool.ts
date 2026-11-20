@@ -1,7 +1,7 @@
 /**
  * Minimal MCP client over Streamable HTTP (demo / manual check):
  *   npm run call-tool -w @billwise/mcp-server -- "extra internet cost" [limit]
- * Uses MCP_URL (default http://localhost:3001/mcp) and MCP_API_KEY from the root .env.
+ * Uses MCP_URL (default http://127.0.0.1:3001/mcp) and MCP_API_KEY from the root .env.
  */
 import path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -13,7 +13,7 @@ loadEnv({ path: path.resolve(__dirname, '../../../../.env'), quiet: true });
 async function main(): Promise<void> {
   const [query = 'extra internet cost', limitArg] = process.argv.slice(2);
   const url = new URL(
-    process.env.MCP_URL ?? `http://localhost:${process.env.MCP_PORT ?? 3001}/mcp`,
+    process.env.MCP_URL ?? `http://127.0.0.1:${process.env.MCP_PORT ?? 3001}/mcp`,
   );
   const transport = new StreamableHTTPClientTransport(url, {
     requestInit: { headers: { 'X-API-Key': process.env.MCP_API_KEY ?? '' } },

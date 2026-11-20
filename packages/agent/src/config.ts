@@ -24,8 +24,8 @@ const thinking = z
 
 const schema = z
   .object({
-    BILLING_API_URL: z.url().default('http://localhost:3000'),
-    MCP_URL: z.url().default('http://localhost:3001/mcp'),
+    BILLING_API_URL: z.url().default('http://127.0.0.1:3000'),
+    MCP_URL: z.url().default('http://127.0.0.1:3001/mcp'),
     MCP_API_KEY: z.string().optional(),
     LLM_PROVIDER: z.enum(['gemini', 'mock']).default('gemini'),
     GEMINI_API_KEY: z.string().optional(),

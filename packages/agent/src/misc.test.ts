@@ -129,8 +129,8 @@ describe('billing client login', () => {
 describe('config', () => {
   it('defaults: localhost services, gemini-3.5-flash-lite, MINIMAL thinking, 4.1 s pacing', () => {
     expect(loadAgentConfig({ GEMINI_API_KEY: 'k' })).toEqual({
-      BILLING_API_URL: 'http://localhost:3000',
-      MCP_URL: 'http://localhost:3001/mcp',
+      BILLING_API_URL: 'http://127.0.0.1:3000',
+      MCP_URL: 'http://127.0.0.1:3001/mcp',
       LLM_PROVIDER: 'gemini',
       GEMINI_API_KEY: 'k',
       GEMINI_MODEL: 'gemini-3.5-flash-lite',
