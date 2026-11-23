@@ -145,15 +145,29 @@ Cloud Run, API Gateway, Artifact Registry and Secret Manager cost nothing while 
 
 ## Before making the repository public
 
-The cloud seed uses the **same demo passwords as the README**, and those accounts are reachable
-through the public gateway. Before the repository (or the README with the gateway URL) goes public,
-do **one** of these:
+**Decision (2026-11-23): the repository is public for grading, and the demo credentials stay unchanged.**
+The course submission needs a link the instructor can open, and GitHub has no "anyone with the link" mode
+for private repositories.
 
-1. **Shut the cloud stack down** (see Teardown, or at least stop Cloud SQL), **or**
-2. **Rotate the credentials:**
-   - Re-seed with new `SEED_ADMIN_PASSWORD` / `SEED_USER_PASSWORD` values that are not in the repo.
-   - Rotate the JWT signing key (`gcloud secrets versions add JWT_PRIVATE_KEY --data-file=-` with a new PEM, then `infra/deploy.sh run` to roll a new revision). Every token issued so far becomes invalid.
-   - Optionally rotate `MCP_API_KEY` the same way.
+- **Demo data is fictitious.** The cloud database holds the same seed as a local run: made-up subscribers,
+  usage and bills, no personal data, simulated payments only.
+- **The demo passwords stay as documented** (subscribers and `admin`). The instructor can then test every
+  operation through the gateway, including Add Usage and Calculate Bill (ADMIN) in Swagger. The cloud JWT key,
+  the MCP key and the database password were generated in Secret Manager and have never been in the repository.
+  A full-history scan (all commits and branches) for them and for the local keys found nothing.
+- **The cloud is kept as-is until grading is finished.** Any change made while testing (payments, usage,
+  recalculated bills) can be undone with a re-seed:
+
+  ```bash
+  cloud-sql-proxy --gcloud-auth --port 5433 project-b81d9425-6ed1-4fb6-a4e:europe-west1:billwise-pg   # terminal 1
+  (set -a; . ./.env.cloud; set +a; node packages/billing-api/dist/db/seed.js --force)                 # terminal 2
+  ```
+
+- **After grading,** the cloud stack is torn down (see Teardown), **or** the credentials are rotated:
+  - Re-seed with new `SEED_ADMIN_PASSWORD` / `SEED_USER_PASSWORD` values that are not in the repository.
+  - Rotate the JWT signing key (`gcloud secrets versions add JWT_PRIVATE_KEY --data-file=-` with a new PEM,
+    then `infra/deploy.sh run` to roll a new revision). Every token issued so far becomes invalid.
+  - Optionally rotate `MCP_API_KEY` the same way.
 
 ## Teardown (deletes everything; irreversible)
 

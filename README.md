@@ -18,7 +18,7 @@ _Originally built as the Midterm project for SE 4458 at Yaşar University._
 | OpenAPI 3 document                                                    | <https://billwise-gw-28mjkppx.ew.gateway.dev/api/v1/openapi.json> · source: [docs/openapi.yaml](docs/openapi.yaml) |
 | JWKS (public keys)                                                    | <https://billwise-gw-28mjkppx.ew.gateway.dev/.well-known/jwks.json>                                                |
 | MCP server (Streamable HTTP, `X-API-Key`; **not** behind the gateway) | `https://mcp-server-rswe5l4uia-ew.a.run.app/mcp`                                                                   |
-| Demo video                                                            | _link will be added here_                                                                                          |
+| Demo video                                                            | <https://www.youtube.com/watch?v=VdGLZU7kEhI>                                                                      |
 | Evidence (logs, traces, test output)                                  | [docs/evidence/](docs/evidence/README.md)                                                                          |
 
 The services scale to zero when idle. The **first request after a pause takes about 8 s** (a cold start), and after that about 0.4 s.
@@ -87,7 +87,7 @@ Every item from the course checklist, with where it is implemented and where the
 | Source code, README, Swagger/OpenAPI, ER diagram                                                                            | this repository                                                                                                                                           | [docs/openapi.yaml](docs/openapi.yaml), [Data model](#data-model)                                                                                                             |
 | Gateway URL + routes; MCP tool schema + indexing approach                                                                   |                                                                                                                                                           | [Live links](#live-links), [API Gateway](#api-gateway), [MCP server](#mcp-server)                                                                                             |
 | Deployment instructions / URLs                                                                                              | [infra/README.md](infra/README.md)                                                                                                                        | [Deployment](#deployment-google-cloud)                                                                                                                                        |
-| Short demo video                                                                                                            |                                                                                                                                                           | [Live links](#live-links)                                                                                                                                                     |
+| Short demo video                                                                                                            |                                                                                                                                                           | [youtube.com/watch?v=VdGLZU7kEhI](https://www.youtube.com/watch?v=VdGLZU7kEhI)                                                                                                | [Live links](#live-links) |
 | Screenshots/logs: 3 agent scenarios (MCP-only, API-only, combined) + tool trace                                             |                                                                                                                                                           | [01](docs/evidence/01-agent-mcp-only.md), [02](docs/evidence/02-agent-api-only.md), [03](docs/evidence/03-agent-combined.md)                                                  |
 | 3 different MCP retrieval tests                                                                                             |                                                                                                                                                           | [04-mcp-retrieval.md](docs/evidence/04-mcp-retrieval.md)                                                                                                                      |
 | Protected gateway route                                                                                                     |                                                                                                                                                           | [05-gateway-protected-route.md](docs/evidence/05-gateway-protected-route.md)                                                                                                  |
@@ -109,22 +109,22 @@ Every item from the course checklist, with where it is implemented and where the
 
 ```bash
 GW=https://billwise-gw-28mjkppx.ew.gateway.dev
-curl -s $GW/api/v1/health/ready                       # first call may take ~8 s (cold start)
+curl -s $GW/api/v1/health/ready; echo                 # first call may take ~8 s (cold start)
 
 # Protected route without a token → 401 from the gateway
-curl -i -X POST -H 'content-type: application/json' -d '{}' $GW/api/v1/payments
+curl -s -i -X POST -H 'content-type: application/json' -d '{}' $GW/api/v1/payments; echo
 
 # Public, versioned route
-curl -s "$GW/api/v1/bills/5551000002?month=10&year=2026"
+curl -s "$GW/api/v1/bills/5551000002?month=10&year=2026"; echo
 
 # Log in (demo account), then call a JWT route → 200
 TOKEN=$(curl -s -X POST -H 'content-type: application/json' \
   -d '{"subscriberNo":"5551000002","password":"user-demo-pass"}' $GW/api/v1/auth/login \
   | node -p "JSON.parse(require('fs').readFileSync(0)).accessToken")
-curl -s -H "Authorization: Bearer $TOKEN" "$GW/api/v1/bills/5551000002/detailed?month=10&year=2026&pageSize=5"
+curl -s -H "Authorization: Bearer $TOKEN" "$GW/api/v1/bills/5551000002/detailed?month=10&year=2026&pageSize=5"; echo
 
 # Someone else's account → 403 (API rule, checked after the gateway's JWT check)
-curl -s -H "Authorization: Bearer $TOKEN" "$GW/api/v1/bills/5551000001/detailed?month=10&year=2026"
+curl -s -H "Authorization: Bearer $TOKEN" "$GW/api/v1/bills/5551000001/detailed?month=10&year=2026"; echo
 ```
 
 Swagger UI: <https://billwise-gw-28mjkppx.ew.gateway.dev/api/v1/docs>. "Authorize" takes the `accessToken` from the login response.
@@ -641,7 +641,12 @@ Stopping the Cloud SQL instance saves almost nothing: a stopped instance still p
 - **Logs:**
   - Traces and request logs never contain passwords, JWTs or keys. The request log records only _which_ header carried the token.
   - The JWT is held in memory only, and the password prompt is hidden.
-- **Demo passwords:** the cloud seed uses the demo passwords documented above, so the instructor can log in. Before the repository goes public, the cloud stack is shut down, or the seed passwords and the JWT key are rotated ([infra/README.md](infra/README.md#before-making-the-repository-public)).
+- **Public repository, demo credentials kept:** the repository is public for grading.
+  - All data is fictitious, and the documented demo passwords (subscribers and `admin`) stay valid, so every operation can be tested.
+  - The cloud is kept as-is until grading is finished; it can be re-seeded any time.
+  - After grading it is torn down, or the credentials are rotated.
+  - The cloud keys were never in the repository: a full-history scan found no secrets. Details: [infra/README.md](infra/README.md#before-making-the-repository-public).
+- **`npm audit`:** `npm ci` reports advisories. The high-severity ones are in `effect`, pulled in by the Prisma CLI (a development tool); it isn't part of the runtime images, which install production dependencies only and omit optional peers.
 
 ## Assumptions
 
@@ -731,7 +736,9 @@ Stopping the Cloud SQL instance saves almost nothing: a stopped instance still p
 
 ## Demo video
 
-_Link will be added here._ It shows the cloud resources, Swagger and the protected route through the gateway, the MCP retrieval tests, the three agent scenarios with traces, a confirmed payment, and the unit-test run.
+**Video:** <https://www.youtube.com/watch?v=VdGLZU7kEhI>
+
+It shows the cloud resources, Swagger and the protected route through the gateway, the MCP retrieval tests, the three agent scenarios with traces, a confirmed payment, and the unit-test run.
 
 ## Project layout and commands
 

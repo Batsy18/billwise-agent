@@ -17,7 +17,7 @@ replaced by placeholders, and the trace files contain no tokens, passwords or ke
 | –   | Full cloud demo trace (scenarios a–h)                                                                                           | [traces/2026-11-18-cloud-demo.json](traces/2026-11-18-cloud-demo.json)       | `npm run demo:cloud -- --reseed`               |
 | –   | Raw gateway 401 response                                                                                                        | [../../infra/gateway-401-example.json](../../infra/gateway-401-example.json) | `infra/deploy.sh verify`                       |
 
-## Screenshots (to be added)
+## Screenshots (optional; the text logs above are the evidence)
 
 Put the images in `docs/evidence/screenshots/` using the file names below.
 
